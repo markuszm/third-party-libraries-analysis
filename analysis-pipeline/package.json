@@ -1,0 +1,14 @@
+{
+  "name": "analysis-pipeline",
+  "version": "1.0.0",
+  "description": "Pipeline to run third party lib analysis",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.12.2",
+    "library-downloader": "file:../library-downloader"
+  }
+}
