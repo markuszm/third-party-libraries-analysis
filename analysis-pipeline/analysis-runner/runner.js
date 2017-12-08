@@ -9,7 +9,7 @@ async function runAnalysisInBrowser(pathToHtml) {
        
     app.get('/', (req, res) => res.send(html))
     
-    let server = app.listen(3000, () => console.log('Example app listening on port 3000!'))
+    let server = app.listen(3000, () => console.log('Analysis listening on port 3000!'))
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -23,7 +23,6 @@ async function runAnalysisInBrowser(pathToHtml) {
     await page.goto(`http://localhost:3000`, { waitUntil: 'load' });
     
     await browser.close();
-
     await server.close();
 
     return results;
