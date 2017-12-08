@@ -8,9 +8,9 @@ const apiUrl = 'https://api.cdnjs.com/libraries';
 
 program
     .arguments('<path>')
-    .action(function (folderPath) {
+    .action(async function (folderPath) {
         let librariesPath = 'libraries.json'
-        downloader.downloadLibrariesRx(apiUrl, path.join(folderPath, librariesPath));
+        await downloader.downloadLibraries(apiUrl, path.join(folderPath, librariesPath));
         let htmlsJson = embedder.createHtmlJson(librariesPath);
         fs.writeFileSync('./htmls.json', htmlsJson);
     })

@@ -17,6 +17,7 @@ async function downloadLibraries(url, path) {
     
     for(let library of libraryList) {
         try {
+            if(!library.latest.endsWith('.js')) continue;
             currentIndex++;
             let jsFile = await downloadLibrary(library.latest);
             console.log(`Downloaded: ${library.name} - ${currentIndex}/${libraryList.length}`);

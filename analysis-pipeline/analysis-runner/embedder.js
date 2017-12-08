@@ -23,6 +23,8 @@ function createHTMLs(pathToLibraries) {
             globalWritesAnalysis: analysisCode,
             jalangiEnv: jalangiEnv })
         
+        console.log(`Embedded: ${library.name}`);
+
         htmls.push({name: library.name, html: html});           
     }
 
