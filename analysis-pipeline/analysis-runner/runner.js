@@ -1,12 +1,26 @@
-var program = require('commander');
-var analysis = require('./analysis.js');
-var fs = require('fs');
+const puppeteer = require('puppeteer');
+const fs = require('fs');
 
-program
-    .arguments('<code_file> [analysis_files...]')
-    .action(function (codeFile, analysisFiles) {
-        let code = fs.readFileSync(codeFile, 'utf8');
-        analysis.analyzeCodeFile(code, analysisFiles);
-    })
-    .parse(process.argv);
+async function runAnalysisInBrowser(pathToHtml) {
+    const browser = await puppeteer.launch({
+        headless: false
+    });
+    const page = await browser.newPage();
 
+    let html = fs.readFileSync(pathToHtml, {encoding: 'utf8'});
+    
+    let results = [];
+
+    page.on('console', msg => {
+        console.log(msg);
+        results.push(msg.text);
+    });
+
+    await page.goto(`data:text/html,${html}`, { timeout: 90000, waitUntil: 'load' });
+    
+    await browser.close();
+
+    return results;
+}
+
+exports.runAnalysisInBrowser = runAnalysisInBrowser;

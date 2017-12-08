@@ -8,11 +8,14 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@reactivex/rxjs": "^5.5.3",
     "commander": "^2.12.2",
     "jalangi2": "0.2.5",
     "mustache": "^2.3.0",
+    "puppeteer": "^0.13.0",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
     "rimraf": "^2.6.2",
-    "underscore": "^1.8.3",
-    "library-downloader": "file:../library-downloader"
+    "underscore": "^1.8.3"
   }
 }

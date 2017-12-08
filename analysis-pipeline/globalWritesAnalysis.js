@@ -307,8 +307,6 @@
                 // console.log(val);
             }
             console.log("global writes:\n" + JSON.stringify(globalWritesTypes, 0, 2));
-
-            sendBackToServer(globalWritesTypes);
         };
 
     }
