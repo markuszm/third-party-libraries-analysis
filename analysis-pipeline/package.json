@@ -10,6 +10,7 @@
   "dependencies": {
     "@reactivex/rxjs": "^5.5.3",
     "commander": "^2.12.2",
+    "express": "^4.16.2",
     "jalangi2": "0.2.5",
     "mustache": "^2.3.0",
     "puppeteer": "^0.13.0",

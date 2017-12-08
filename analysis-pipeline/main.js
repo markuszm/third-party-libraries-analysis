@@ -13,7 +13,7 @@ program
         let librariesPath = 'libraries.json'
         await downloader.downloadLibraries(apiUrl, path.join(folderPath, librariesPath));
         await embedder.createHtmlJson(librariesPath);
-        
+
         let htmlsPath = './htmls';
         fs.readdir(htmlsPath, async function(err, items) {
             for (let item of items) {
