@@ -9,6 +9,10 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^2.12.2",
+    "jalangi2": "0.2.5",
+    "mustache": "^2.3.0",
+    "rimraf": "^2.6.2",
+    "underscore": "^1.8.3",
     "library-downloader": "file:../library-downloader"
   }
 }
