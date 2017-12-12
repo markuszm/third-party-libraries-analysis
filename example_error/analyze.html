@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Global write analysis</title>
+
+    <!-- Needed for finding type -->
+    <script src="../analysis-pipeline/node_modules/underscore/underscore-min.js"></script>
+
+    <script src="../analysis-pipeline/node_modules/jalangi2/node_modules/esotope/esotope.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/node_modules/acorn/dist/acorn.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/src/js/Constants.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/src/js/Config.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/src/js/instrument/astUtil.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/src/js/instrument/esnstrument.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/src/js/runtime/iidToLocation.js"></script>
+    <script src="../analysis-pipeline/node_modules/jalangi2/src/js/runtime/analysis.js"></script>
+
+    <script src="globalWritesAnalysis.js"></script>
+    <script src="validator.js"></script>
+    <script>
+        //        Send the results back to the server
+        function sendBackToServer(globalWritesTypes) {
+            var stringData = JSON.stringify({
+                result: {
+                    typeofTest: "<!--__TYPE_OF_TEST__-->",
+                    resultFilePath: "<!--__RESULT_FILE__PATH-->",
+//                    jobID: "<!--__JOB_ID__-->",
+                    content: globalWritesTypes,
+                    generatedTests: []
+                }
+            });
+            console.log(stringData);
+        }
+        J$.analysis.endExecution();
+    </script>
+</head>
+<body>
+<h2>Analyzing global writes of <!--NAME--></h2>
+</body>
+</html>
