@@ -25,7 +25,7 @@ program
                 console.log(`Reusing existing libraries.json`);
                 await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
             } else {
-                await downloader.downloadLibraries(apiUrl, path.join(folderPath, librariesPath));
+                await downloader.downloadLibraries(apiUrl, librariesPath);
                 await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
             }
         });
@@ -33,7 +33,7 @@ program
     .parse(process.argv);
 
 async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
-    // await embedder.createHtmlJson(librariesPath, htmlsPath);
+    await embedder.createHtmlJson(librariesPath, htmlsPath);
 
     fs.readdir(htmlsPath, async function (err, items) {
         for (let item of items) {

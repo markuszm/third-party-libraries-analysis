@@ -1,9 +1,9 @@
 # third-party-libraries-analysis
 
-## Analysis Runner
-Showcases how to use Jalangi 2 API to run instrumentation of one code file and analysis with multiple analysis files.
+## Analysis Pipeline
+Runs analysis for all latest versions of libraries from cdnjs.
 
-Requires nodejs v6
+Requires nodejs 
 
 #### First install requirements with:
 
@@ -11,8 +11,10 @@ Requires nodejs v6
 
 #### Usage:
 
-``` node runner.js <path to code file> [path to analysis file...] ```
+``` node main.js <path for results>```
 
-Example with Tutorial files:
+or
 
-``` node runner.js ../tutorial/sample.js ../tutorial/analysis.js ```
+``` npm run start ```
+
+with default path `./tmp`
