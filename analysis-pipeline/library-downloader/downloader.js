@@ -28,11 +28,7 @@ async function downloadLibraries(url, path) {
             console.error(`Could not load library ${library.name} with error: ${err}`);
         }
     }
-    await fs.writeFile(path, JSON.stringify(libraryPairs), err => {
-        if (err) {
-            console.error(`Error writing the json: ${err}`)
-        }
-    });
+    fs.writeFileSync(path, JSON.stringify(libraryPairs));
     console.log(`Amount of failed downloads: ${amountOfFailedDownloads}`);
 }
 

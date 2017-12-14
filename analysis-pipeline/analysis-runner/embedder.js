@@ -7,7 +7,7 @@ const util = require('util');
 const Mustache = require('mustache');
 
 async function createHTMLs(pathToLibraries, destination) {
-    let librariesJson = await fs.readFileSync(pathToLibraries);
+    let librariesJson = fs.readFileSync(pathToLibraries, { encoding: 'utf8' });
 
     let libraries = JSON.parse(librariesJson);
 
