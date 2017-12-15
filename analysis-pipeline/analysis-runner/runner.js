@@ -31,7 +31,7 @@ async function runAnalysisInBrowser(pathToHtml) {
     try {
         await page.goto(`http://localhost:3000`, {timeout: 60000});
     } catch(err) {
-        results += `ERROR - TIMEOUT`
+        results += `Error: Timeout`
     } finally {
         await browser.close();
         await server.close();

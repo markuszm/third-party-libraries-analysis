@@ -2,7 +2,7 @@ const fs = require('fs');
 const instrument = require('./instrument');
 const template = require('./template').template;
 const path = require('path');
-const util = require('util');
+const fileUtil = require('../fileUtil');
 
 const Mustache = require('mustache');
 
@@ -19,11 +19,11 @@ async function createHTMLs(pathToLibraries, destination) {
 
     for (const library of libraries) {
         const htmlPath = path.join(destination, `${library.name}.html`);
-        try {
-            fs.statSync(htmlPath);
-            // file already exists - skip
+        if(fileUtil.checkFileExists(htmlPath)) {
+            // file already exists skip to save performance
             console.log(`HTML already exists: ${library.name}`);
-        } catch(err) {
+        } 
+        else {
             instrumentAndEmbed(library, htmlPath, underscoreCode, analysisCode, jalangiEnv);
         }
     }

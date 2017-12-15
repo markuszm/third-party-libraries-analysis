@@ -12,4 +12,14 @@ function ensureExistsAsync(path) {
     });
   }
 
+function checkFileExists(path) {
+  try {
+    fs.statSync(path);
+    return true;
+  } catch(err) {
+    return false;
+  }
+}
+
 exports.ensureExistsAsync = ensureExistsAsync;
+exports.checkFileExists = checkFileExists;
