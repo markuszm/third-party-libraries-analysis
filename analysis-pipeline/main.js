@@ -76,7 +76,12 @@ async function aggregateResults(resultsPath, destPath) {
                 let globalWritesString = result.split('global writes:')[1];
                 let endIndex = globalWritesString.lastIndexOf('}') + 1;
                 globalWritesString = globalWritesString.substring(0, endIndex);
+
                 let globalWrites = JSON.parse(globalWritesString);
+
+                // skip libraries that have no global writes
+                if(Object.keys(globalWrites).length === 0) continue;
+
                 resultsMap.push({name: libraryName, result: globalWrites});
             } catch (error) {
                 console.log(`Error parsing global writes result for library: ${libraryName} \nresult: ${result} `)
