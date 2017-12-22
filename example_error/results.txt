@@ -1,0 +1,22 @@
+Validator with JQuery 
+global writes:
+{
+  "$": "Function",
+  "$.prototype.validator": "Function",
+  "jQuery.prototype.validator": "Function",
+  "$.prototype.validator.Constructor": "Function",
+  "jQuery.prototype.validator.Constructor": "Function",
+  "$.prototype.validator.noConflict": "Function",
+  "jQuery.prototype.validator.noConflict": "Function"
+}
+
+Validator without JQuery
+global writes:
+{}
+
+only JQuery
+global writes:
+{
+  "$": "Function",
+  "jQuery": "Function"
+}
