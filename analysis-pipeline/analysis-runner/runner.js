@@ -14,29 +14,31 @@ async function runAnalysisInBrowser(pathToHtml) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    let results = "";
+    let writes = "";
+
+    let errors = "";
 
     page.on('console', msg => {
-        results += msg.text;
+        writes += msg.text;
     });
 
     page.on('error', err => {
-        results += err;
+        errors += err;
     });
 
     page.on('pageerror', pageerr => {
-        results += pageerr;
+        errors += pageerr;
     })
 
     try {
         await page.goto(`http://localhost:3000`, {timeout: 60000});
     } catch(err) {
-        results += `Error: Timeout`
+        errors += `Error: Timeout`
     } finally {
         await browser.close();
         await server.close();
     
-        return results;
+        return {writes, errors};
     }
 
 }

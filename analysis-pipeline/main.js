@@ -68,12 +68,12 @@ async function aggregateResults(resultsPath, destPath) {
             
             let contents = fs.readFileSync(resultFilePath, { encoding: 'utf8' });
             let result = JSON.parse(contents);
-            if (result.includes("Error") || result.includes("ERROR")) continue;
+            if (result.errors.includes("Error") || result.errors.includes("ERROR")) continue;
 
             let libraryName = path.basename(resultFilePath).split('.')[0];
             
             try {   
-                let globalWritesString = result.split('global writes:')[1];
+                let globalWritesString = result.writes.split('global writes:')[1];
                 let endIndex = globalWritesString.lastIndexOf('}') + 1;
                 globalWritesString = globalWritesString.substring(0, endIndex);
 
