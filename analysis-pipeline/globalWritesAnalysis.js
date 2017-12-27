@@ -98,19 +98,59 @@
          * @returns {String}
          */
         function myType(value) {
-            if (_.isArray(value)) return 'Array';
-            else if (_.isFunction(value)) return 'Function';
-            else if (_.isBoolean(value)) return 'Boolean';
-            else if (_.isNumber(value)) return 'Number';
-            else if (_.isDate(value)) return 'Date';
-            else if (_.isRegExp(value)) return 'RegExp';
-            else if (_.isNull(value)) return 'null';
-            else if (_.isUndefined(value)) return 'undefined';
-            else if (_.isString(value)) return 'String';
-            else if (_.isArguments(value)) return 'Arguments';
+            if (isArray(value)) return 'Array';
+            else if (isFunction(value)) return 'Function';
+            else if (isBoolean(value)) return 'Boolean';
+            else if (isNumber(value)) return 'Number';
+            else if (isDate(value)) return 'Date';
+            else if (isRegExp(value)) return 'RegExp';
+            else if (isNull(value)) return 'null';
+            else if (isUndefined(value)) return 'undefined';
+            else if (isString(value)) return 'String';
+            else if (isArguments(value)) return 'Arguments';
             else if (value instanceof Map) return 'Map';
             else if (value instanceof Set) return 'Set';
             else return typeof value; // If none of above then probably 'object'
+        }
+
+        function isArray(obj) {
+            return toString.call(obj) === '[object ' + 'Array' + ']';
+        }
+
+        function isFunction(obj) {
+            return toString.call(obj) === '[object ' + 'Function' + ']';
+        }
+
+        function isBoolean(obj) {
+            return toString.call(obj) === '[object ' + 'Boolean' + ']';
+        }
+
+        function isNumber(obj) {
+            return toString.call(obj) === '[object ' + 'Number' + ']';
+        }
+
+        function isDate(obj) {
+            return toString.call(obj) === '[object ' + 'Date' + ']';
+        }
+
+        function isRegExp(obj) {
+            return toString.call(obj) === '[object ' + 'RegExp' + ']';
+        }
+
+        function isNull(obj) {
+            return obj === null;            
+        }
+
+        function isUndefined(obj) {
+            return obj === void 0;            
+        }
+
+        function isString(obj) {
+            return toString.call(obj) === '[object ' + 'String' + ']';
+        }
+
+        function isArguments(obj) {
+            return toString.call(obj) === '[object ' + 'Arguments' + ']';
         }
 
         this.write = function (iid, name, val, lhs, isGlobal, isScriptLocal) {

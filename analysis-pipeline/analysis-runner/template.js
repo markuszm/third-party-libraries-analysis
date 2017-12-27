@@ -4,7 +4,7 @@ const template = '<!DOCTYPE html> \
     <meta charset="UTF-8"> \
     <title>Global write analysis</title> \
     <!-- Needed for finding type --> \
-    <script type="text/javascript">{{{ underscore }}} \n {{{ jalangiEnv }}} \n {{{globalWritesAnalysis }}} \n {{{ instrumentedCode }}} \n \
+    <script type="text/javascript">{{{ jalangiEnv }}} \n {{{globalWritesAnalysis }}} \n {{{ instrumentedCode }}} \n \
     </script> \
     <script>J$.analysis.endExecution()     </script> \
 </head> \

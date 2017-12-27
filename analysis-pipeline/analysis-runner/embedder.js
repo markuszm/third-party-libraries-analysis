@@ -11,7 +11,6 @@ async function createHTMLs(pathToLibraries, destination) {
 
     let libraries = JSON.parse(librariesJson);
 
-    let underscoreCode = loadUnderscore();
     let analysisCode = loadAnalysisCode();
     let jalangiEnv = loadJalangiEnv();
 
@@ -24,12 +23,12 @@ async function createHTMLs(pathToLibraries, destination) {
             console.log(`HTML already exists: ${library.name}`);
         } 
         else {
-            instrumentAndEmbed(library, htmlPath, underscoreCode, analysisCode, jalangiEnv);
+            instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv);
         }
     }
 }
 
-function instrumentAndEmbed(library, htmlPath, underscoreCode, analysisCode, jalangiEnv) {
+function instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv) {
     let code = library.js;
     // checks for size of library - instrumentation takes too much memory 
     if(getBinarySize(code) > 15000000) {
@@ -41,7 +40,6 @@ function instrumentAndEmbed(library, htmlPath, underscoreCode, analysisCode, jal
     console.log(`Creating HTML for ${library.name}`);
     let html = Mustache.render(template, {
         instrumentedCode: instrumentedCode,
-        underscore: underscoreCode,
         globalWritesAnalysis: analysisCode,
         jalangiEnv: jalangiEnv
     });
@@ -52,10 +50,6 @@ function instrumentAndEmbed(library, htmlPath, underscoreCode, analysisCode, jal
 
 function getBinarySize(string) {
     return Buffer.byteLength(string, 'utf8');
-}
-
-function loadUnderscore() {
-    return fs.readFileSync('node_modules/underscore/underscore-min.js', { encoding: 'utf8' });
 }
 
 function loadAnalysisCode() {
