@@ -9,7 +9,8 @@ async function runAnalysisInBrowser(pathToHtml) {
 
     app.get('/', (req, res) => res.send(html))
 
-    let server = app.listen(3000, () => console.log('Analysis listening on port 3000!'))
+    let randomPort = Math.round(Math.random() * 65535);
+    let server = app.listen(randomPort, () => console.log(`Analysis listening on port ${randomPort}!`))
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -19,7 +20,7 @@ async function runAnalysisInBrowser(pathToHtml) {
     let errors = "";
 
     page.on('console', msg => {
-        writes += msg.text;
+        writes += msg.text; 
     });
 
     page.on('error', err => {
@@ -31,7 +32,7 @@ async function runAnalysisInBrowser(pathToHtml) {
     })
 
     try {
-        await page.goto(`http://localhost:3000`, {timeout: 60000});
+        await page.goto(`http://localhost:${randomPort}`, {timeout: 300000});
     } catch(err) {
         errors += `Error: Timeout`
     } finally {

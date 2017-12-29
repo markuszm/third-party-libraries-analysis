@@ -29,11 +29,12 @@ async function runAnalysisInBrowser(websiteFolder) {
     // })
 
     try {
-        await page.goto(`http://localhost:3001/index.html`, {timeout: 30000});
+        await page.goto(`http://localhost:3001`, {timeout: 300000});
     } catch(err) {
         errors += `Error: Timeout`
     } finally {
         await page.evaluate('J$.analysis.endExecution()');
+        console.log(await page.evaluate('$.fn.jquery'))
         await browser.close();
         await server.close();
     

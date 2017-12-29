@@ -55,6 +55,23 @@ program
     })
 
 program
+    .command('analyzeHTML <htmlPath> <destPath>')
+    .action(async (htmlPath, destPath) => {
+        await util.ensureExistsAsync(destPath);
+        await runAnalysisHTML(htmlPath, destPath);
+    })
+
+program
+    .command('instrumentWebsites <websitesPath> <analysisPath> <destPath>')
+    .action(async (websitesPath, analysisPath, destPath) => {
+        await util.ensureExistsAsync(destPath);
+        let websites = fs.readdirSync(websitesPath);
+        for(let website of websites) {
+            websiteInstrument.instrumentWebsite(path.join(websitesPath, website), analysisPath, destPath);
+        }
+    })
+
+program
     .command('analyzeWebsite <websitePath> <destPath>')
     .action(async (websitePath, destPath) => {
         await util.ensureExistsAsync(destPath);
@@ -63,7 +80,29 @@ program
         let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(websitePath);
         
         let globalWrites = parseResult(results);
-        fs.writeFileSync(path.join(destPath, resultFileName), JSON.stringify(globalWrites));
+        fs.writeFileSync(path.join(destPath, `${resultFileName}.json`), JSON.stringify(globalWrites));
+    })
+
+program
+    .command('analyzeWebsites <websitesPath> <destPath>')
+    .action(async (websitesPath, destPath) => {
+        await util.ensureExistsAsync(destPath);
+
+        let websites = fs.readdirSync(websitesPath);
+
+        for(let website of websites) {
+            let resultFileName = path.basename(path.join(websitesPath, website));
+            let resultFilePath = path.join(destPath, resultFileName);
+            if (util.checkFileExists(resultFilePath) || website === "facebook.com") {
+                console.log(`Already analyzed website: ${website}`)
+                continue;
+            }
+            console.log(`Analyzing website: ${website}`);
+            let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(path.join(websitesPath, website));
+
+            let globalWrites = parseResult(results);
+            fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
+        }       
     })
 
 program.parse(process.argv);
@@ -73,18 +112,23 @@ async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
 
     await fs.readdir(htmlsPath, async (err, items) => {
         for (let item of items) {
-            let resultFilePath = path.join(resultsPath, `${item}.json`);
-            if (util.checkFileExists(resultFilePath)) {
-                console.log(`Already analyzed ${item}`);
-                continue;
-            }
-            else {
-                console.log(`Analyzing ${item}`);
-                let results = await analysisRunner.runAnalysisInBrowser(path.join(htmlsPath, item));
-                fs.writeFileSync(resultFilePath, JSON.stringify(results));
-            }
+            let htmlPath = path.join(htmlsPath, item);
+            await runAnalysisHTML(htmlPath, resultsPath);
         }
     });
+}
+
+async function runAnalysisHTML(htmlPath, resultsPath) {
+    let html = path.basename(htmlPath);
+    let resultFilePath = path.join(resultsPath, `${html}.json`);
+    if (util.checkFileExists(resultFilePath)) {
+        console.log(`Already analyzed ${html}`);
+    }
+    else {
+        console.log(`Analyzing ${html}`);
+        let results = await analysisRunner.runAnalysisInBrowser(htmlPath);
+        fs.writeFileSync(resultFilePath, JSON.stringify(results));
+    }
 }
 
 async function aggregateResults(resultsPath, destPath) {
@@ -104,7 +148,9 @@ async function aggregateResults(resultsPath, destPath) {
 }
 
 function parseResultFile(resultFilePath) {
-    if (path.extname(resultFilePath) !== '.json') continue;
+    if (path.extname(resultFilePath) !== '.json') {
+        return null;
+    }
 
     let contents = fs.readFileSync(resultFilePath, { encoding: 'utf8' });
     let result = JSON.parse(contents);
