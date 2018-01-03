@@ -21,27 +21,28 @@ function scrapeWebsite(url, dest) {
 }
 
 const urls = [
-    'https://google.com',
-    'https://youtube.com',
-    'https://facebook.com',
-    'https://baidu.com',
-    'https://wikipedia.org',
-    'https://yahoo.com',
-    'https://reddit.com',
-    'https://qq.com	',
-    'https://taobao.com',
-    'https://amazon.com',
-    'https://tmall.com',
-    'https://twitter.com',
-    'https://sohu.com',
-    'https://outlook.live.com/owa',
-    'https://vk.com',
-    'https://instagram.com',
-    'https://sina.com.cn',
     'https://360.cn',
+    'https://amazon.com',
+    'https://baidu.com',
+    'https://facebook.com',
+    'https://google.com',
+    'https://instagram.com',
     'https://jd.com',
     'https://linkedin.com',
-    'https://weibo.com'
+    'https://netflix.com',
+    'https://outlook.live.com/owa',
+    'http://qq.com',
+    'https://reddit.com',
+    'https://sina.com.cn',
+    'https://sohu.com',
+    'https://taobao.com',
+    'https://tmall.com',
+    'https://twitter.com',
+    'https://vk.com',
+    'https://weibo.com',
+    'https://wikipedia.org',
+    'https://yahoo.com',
+    'https://youtube.com'
 ];
 
 function downloadAllWebsites(dest) {

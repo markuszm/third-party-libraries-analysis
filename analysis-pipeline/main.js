@@ -23,15 +23,15 @@ program
         await util.ensureExistsAsync(htmlsPath);
         await util.ensureExistsAsync(resultsPath);
 
-        if (util.checkFileExists) {
+        if (util.checkFileExists(librariesPath)) {
             await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
+            await aggregateResults(resultsPath, folderPath);
         }
         else {
             await downloader.downloadLibraries(apiUrl, librariesPath);
             await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
+            await aggregateResults(resultsPath, folderPath);
         }
-
-        await aggregateResults(resultsPath, path.join(folderPath, 'map.json'));
     })
 
 program
@@ -93,7 +93,7 @@ program
         for(let website of websites) {
             let resultFileName = path.basename(path.join(websitesPath, website));
             let resultFilePath = path.join(destPath, resultFileName);
-            if (util.checkFileExists(resultFilePath) || website === "facebook.com") {
+            if (util.checkFileExists(resultFilePath)) {
                 console.log(`Already analyzed website: ${website}`)
                 continue;
             }

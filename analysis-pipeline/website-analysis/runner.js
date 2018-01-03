@@ -34,10 +34,15 @@ async function runAnalysisInBrowser(websiteFolder) {
         errors += `Error: Timeout`
     } finally {
         await page.evaluate('J$.analysis.endExecution()');
-        console.log(await page.evaluate('$.fn.jquery'))
+        try {
+            console.log(await page.evaluate('$.fn.jquery'))
+        }
+        catch(err) {
+            console.log(`Website is not using JQuery`)
+        }
+        
         await browser.close();
         await server.close();
-    
         return {writes, errors};
     }
 
