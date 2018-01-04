@@ -301,6 +301,7 @@
             /* At the end of execution check again if the properties exists.
              * Some properties might get deleted in the meantime.
              * */
+            // console.log(`number of writes: ${Object.keys(globalWritesTypes).length}`);
             for (const key in globalWritesTypes) {
                 // console.log(key);
                 let val = 'START';

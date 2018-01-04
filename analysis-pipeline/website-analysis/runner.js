@@ -29,18 +29,32 @@ async function runAnalysisInBrowser(websiteFolder) {
     // })
 
     try {
-        await page.goto(`http://localhost:3001`, {timeout: 300000});
+        console.log(`navigating to analysis`)
+        await page.goto(`http://localhost:3001`, {timeout: 30000});
+        console.log(`analysis finished`)
     } catch(err) {
+        console.log(`analysis timed out`)
         errors += `Error: Timeout`
     } finally {
-        await page.evaluate('J$.analysis.endExecution()');
-        try {
-            console.log(await page.evaluate('$.fn.jquery'))
-        }
-        catch(err) {
+        console.log(`triggering endExcecution of analysis`)
+        page.evaluate('J$.analysis.endExecution()');
+        await page.waitFor(30000);
+
+        if(writes.includes('"$": "Function"')) {
+            console.log(`trying to detect JQuery version`)
+            try {
+                console.log(page.evaluate('$.fn.jquery'))
+                await page.waitFor(3000);        
+            }
+            catch(err) {
+                console.log(`Website is not using JQuery`)
+            }
+        } 
+        else {
             console.log(`Website is not using JQuery`)
         }
-        
+
+        console.log(`closing all resources`)
         await browser.close();
         await server.close();
         return {writes, errors};
