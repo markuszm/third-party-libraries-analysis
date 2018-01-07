@@ -4,6 +4,8 @@
 
 tmp
 
+.vscode
+
 # Logs
 logs
 *.log

@@ -8,6 +8,8 @@ const util = require('./fileUtil');
 const websiteScraper = require('./website-analysis/scraper');
 const websiteInstrument = require('./website-analysis/instrument');
 const websiteAnalysisRunner = require('./website-analysis/runner');
+const resultParser = require('./resultParser');
+const modelGenerator = require('./modelGenerator');
 
 const apiUrl = 'https://api.cdnjs.com/libraries';
 
@@ -25,19 +27,19 @@ program
 
         if (util.checkFileExists(librariesPath)) {
             await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
-            await aggregateResults(resultsPath, folderPath);
+            await resultParser.aggregateResults(resultsPath, folderPath);            
         }
         else {
             await downloader.downloadLibraries(apiUrl, librariesPath);
             await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
-            await aggregateResults(resultsPath, folderPath);
+            await resultParser.aggregateResults(resultsPath, folderPath);
         }
     })
 
 program
     .command('aggregate <resultsPath> <destPath>')
     .action(async (resultsPath, destPath) => {
-        await aggregateResults(resultsPath, destPath);
+        await resultParser.aggregateResults(resultsPath, destPath);
     })
 
 program
@@ -79,7 +81,7 @@ program
 
         let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(websitePath);
         
-        let globalWrites = parseResult(results);
+        let globalWrites = resultParser.parseResult(results);
         fs.writeFileSync(path.join(destPath, `${resultFileName}.json`), JSON.stringify(globalWrites));
     })
 
@@ -92,7 +94,7 @@ program
 
         for(let website of websites) {
             let resultFileName = path.basename(path.join(websitesPath, website));
-            let resultFilePath = path.join(destPath, resultFileName);
+            let resultFilePath = path.join(destPath, `${resultFileName}.json`);
             if (util.checkFileExists(resultFilePath)) {
                 console.log(`Already analyzed website: ${website}`)
                 continue;
@@ -100,12 +102,50 @@ program
             console.log(`Analyzing website: ${website}`);
             let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(path.join(websitesPath, website));
 
-            let globalWrites = parseResult(results);
+            let globalWrites = resultParser.parseResult(results);
             fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
         }       
     })
 
+program
+    .command('modelWebsite <resultPath>')
+    .action(async (resultPath) => {
+        let contents = fs.readFileSync(resultPath, { encoding: 'utf8' });
+        let result = JSON.parse(contents);
+
+        let model = modelGenerator.transformWebsiteResults(result);
+
+        model.forEach((value, key) => {
+            console.log(key);
+            console.log(value.model);
+        });
+
+    })
+
+program
+    .command('model <resultPath>')
+    .action(async (resultPath) => {
+        let contents = fs.readFileSync(resultPath, { encoding: 'utf8' });
+        let resultPairs = JSON.parse(contents);
+
+        let variableHierarchies = new Map();
+
+        for (const resultPair of resultPairs) {
+            let libraryName = resultPair.name;
+            modelGenerator.transformLibraryResults(resultPair.result, variableHierarchies, libraryName);
+        }
+
+        console.log(variableHierarchies.get("$"));
+    })
+
 program.parse(process.argv);
+
+function mapToJson(map) {
+    return JSON.stringify([...map]);
+}
+function jsonToMap(jsonStr) {
+    return new Map(JSON.parse(jsonStr));
+}
 
 async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
     await embedder.createHtmlJson(librariesPath, htmlsPath);
@@ -129,61 +169,4 @@ async function runAnalysisHTML(htmlPath, resultsPath) {
         let results = await analysisRunner.runAnalysisInBrowser(htmlPath);
         fs.writeFileSync(resultFilePath, JSON.stringify(results));
     }
-}
-
-async function aggregateResults(resultsPath, destPath) {
-    await fs.readdir(resultsPath, async (err, items) => {
-        let resultsMap = [];
-        for (let item of items) {
-            let resultFilePath = path.join(resultsPath, item);
-
-            let parsedResult = parseResultFile(resultFilePath);
-            if(parsedResult) {
-                resultsMap.push(parsedResult);
-            }
-        }
-
-        fs.writeFileSync(path.join(destPath, 'map.json'), JSON.stringify(resultsMap));
-    })
-}
-
-function parseResultFile(resultFilePath) {
-    if (path.extname(resultFilePath) !== '.json') {
-        return null;
-    }
-
-    let contents = fs.readFileSync(resultFilePath, { encoding: 'utf8' });
-    let result = JSON.parse(contents);
-    if (result.errors.includes("Error") || result.errors.includes("ERROR")) {
-        return null;
-    }
-
-    let libraryName = path.basename(resultFilePath).split('.')[0];
-
-    try {
-        let globalWrites = parseResult(result);
-        if(globalWrites) {
-            return { name: libraryName, result: globalWrites };
-        } else {
-            return null;
-        }
-    } catch (error) {
-        console.log(`Error parsing global writes result for library: ${libraryName} \nresult: ${result} `);
-        return null;
-    }
-}
-
-function parseResult(result) {
-    let globalWritesString = result.writes.split('global writes:')[1];
-    let endIndex = globalWritesString.lastIndexOf('}') + 1;
-    globalWritesString = globalWritesString.substring(0, endIndex);
-
-    let globalWrites = JSON.parse(globalWritesString);
-
-    // skip libraries that have no global writes
-    if (Object.keys(globalWrites).length === 0) {
-        return null;
-    }
-
-    return globalWrites;
 }
