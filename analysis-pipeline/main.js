@@ -14,7 +14,7 @@ const modelGenerator = require('./modelGenerator');
 const apiUrl = 'https://api.cdnjs.com/libraries';
 
 program
-    .arguments('<path>')
+    .command('fullModel <path>')
     .action(async (folderPath) => {
         await util.ensureExistsAsync(folderPath);
 
@@ -41,8 +41,8 @@ program
     .action(async (resultsPath, destPath) => {
         await resultParser.aggregateResults(resultsPath, destPath);
     })
+    program
 
-program
     .command('scrape <destPath>')
     .action(async (destPath) => {
         await util.ensureExistsAsync(destPath);
