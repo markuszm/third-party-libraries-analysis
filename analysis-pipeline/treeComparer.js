@@ -1,8 +1,8 @@
 const levenshtein = require('fast-levenshtein');
 
 function compareTrees(root1, root2) {
-    let treeIds1 = "";
-    let treeIds2 = "";
+    let treeIds1 = '';
+    let treeIds2 = '';
 
     // Depth first pre-order traversing
     root1.walk(node => {
@@ -10,7 +10,7 @@ function compareTrees(root1, root2) {
     });
     root2.walk(node => {
         treeIds2 += node.model.id;
-    })
+    });
 
     let distance = levenshtein.get(treeIds1, treeIds2);
 

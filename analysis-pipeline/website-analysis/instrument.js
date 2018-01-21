@@ -8,7 +8,7 @@ function instrumentCode(websiteDir, analysisFile, dest) {
         inlineIID: true,
         inlineJalangi: true,
         instrumentInline: true
-    }
+    };
     return jalangi.instrumentDir(options);    
 }
 

@@ -3,7 +3,6 @@ const fs = require('fs');
 const Rx = require('@reactivex/rxjs');
 
 function downloadLibraries(url, path) {
-    let libraryPairs = [];
     let options = {
         uri: url,
         json: true // Automatically parses the JSON string in the response
@@ -18,15 +17,15 @@ function downloadLibraries(url, path) {
         .toArray()
         // ToDo: remove subscription here and just return observable
         .subscribe(
-        (libraryPairs) => {
-            fs.writeFile(path, JSON.stringify(libraryPairs), err => {
-                if (err) {
-                    console.error(`Error writing the json: ${err}`)
-                }
-            });
-        },
-        (error) => console.error(`Stopped with error: ${error}`),
-        () => console.log('Finished')
+            (libraryPairs) => {
+                fs.writeFile(path, JSON.stringify(libraryPairs), err => {
+                    if (err) {
+                        console.error(`Error writing the json: ${err}`);
+                    }
+                });
+            },
+            (error) => console.error(`Stopped with error: ${error}`),
+            () => console.log('Finished')
         );
 }
 
@@ -37,7 +36,7 @@ function downloadLibrary(library) {
         .switchMap(url => request(url)) // subscribe to inner request promise and switch to the result observable
         .do(() => console.log(`Downloaded: ${library.name}`))
         .map(response => {
-            return { name: library.name, js: response }
+            return { name: library.name, js: response };
         });
 }
 

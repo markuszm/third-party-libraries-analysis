@@ -5,10 +5,10 @@ const treeModel = new TreeModel({
         var nameA = node1.id.toUpperCase(); // ignore upper and lowercase
         var nameB = node2.id.toUpperCase(); // ignore upper and lowercase
         if (nameA < nameB) {
-          return -1;
+            return -1;
         }
         if (nameA > nameB) {
-          return 1;
+            return 1;
         }
         
         // names must be equal
@@ -80,7 +80,7 @@ function addVariablesAsChildren(hierarchy, variableChain) {
         const successorNode = node.children.find(child => child.model.id === successor);
         
         // add child if node for variable/function does not exist -> new child is next node
-        node = successorNode ? successorNode : node.addChild(treeModel.parse({id: successor, children: []}))
+        node = successorNode ? successorNode : node.addChild(treeModel.parse({id: successor, children: []}));
     }
 }
 

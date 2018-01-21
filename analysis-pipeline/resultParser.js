@@ -14,7 +14,7 @@ async function aggregateResults(resultsPath, destPath) {
         }
 
         fs.writeFileSync(path.join(destPath, 'map.json'), JSON.stringify(resultsMap));
-    })
+    });
 }
 
 function parseResultFile(resultFilePath) {
@@ -24,7 +24,7 @@ function parseResultFile(resultFilePath) {
 
     let contents = fs.readFileSync(resultFilePath, { encoding: 'utf8' });
     let result = JSON.parse(contents);
-    if (result.errors.includes("Error") || result.errors.includes("ERROR")) {
+    if (result.errors.includes('Error') || result.errors.includes('ERROR')) {
         return null;
     }
 

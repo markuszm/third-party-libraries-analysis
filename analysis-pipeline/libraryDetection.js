@@ -5,7 +5,7 @@ const fs = require('fs');
 
 function getIdOfNode(node) {
     return node.model.id;
-} 
+}
 
 function generateWebsiteModel(resultPath) {
     let contents = fs.readFileSync(resultPath, { encoding: 'utf8' });
@@ -31,23 +31,36 @@ function generateLibrariesModel(resultPath) {
 function detectLibraries(websiteResultPath, librariesResultPath) {
     // map of variable hierarchies (variable -> (Libraryname -> Function/Object Tree Hierarchy ))
     let librariesModel = generateLibrariesModel(librariesResultPath);
-        
+
     // function/object tree hierarchies of global writes detected on website
     let websiteModel = generateWebsiteModel(websiteResultPath);
 
     let detectedLibraries = [];
 
     websiteModel.forEach((objectHierarchy, variableName) => {
-        objectHierarchy.walk({strategy: 'post'}, (node) => {
+        objectHierarchy.walk({ strategy: 'post' }, (node) => {
             let id = getIdOfNode(node);
-            if(librariesModel.has(id)) {
+            if (librariesModel.has(id)) {
                 let libraryMap = librariesModel.get(id);
                 let seenLibraries = [];
                 libraryMap.forEach((tree, library) => {
                     let similarity = treeComparer.compareTrees(tree, node);
-                    seenLibraries.push({variable: variableName, library: library, confidende: similarity});
+                    seenLibraries.push({ variable: variableName, library: library, confidence: similarity });
                 });
                 // TODO: sort seenLibraries after similarity
+                seenLibraries.sort((a, b) => {
+                    let confidenceA = a.confidence;
+                    let confidenceB = b.confidence;
+                    if (confidenceA > confidenceB) {
+                        return -1;
+                    }
+                    if (confidenceA < confidenceB) {
+                        return 1;
+                    }
+
+                    // names must be equal
+                    return 0;
+                });
                 detectedLibraries.push(seenLibraries);
             }
         })

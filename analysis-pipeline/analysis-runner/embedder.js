@@ -14,8 +14,6 @@ async function createHTMLs(pathToLibraries, destination) {
     let analysisCode = loadAnalysisCode();
     let jalangiEnv = loadJalangiEnv();
 
-    let htmls = [];
-
     for (const library of libraries) {
         const htmlPath = path.join(destination, `${library.name}.html`);
         if(fileUtil.checkFileExists(htmlPath)) {

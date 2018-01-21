@@ -6,14 +6,14 @@ var jalangi = require('jalangi2');
 var tempFolder = './tmp';
 
 function analyzeCodeFile(code, analysisFiles) {
-    let instrumentedCode = jalangi.instrumentString(code);
+    let instrumentedCode = jalangi.instrumentString(code, {});
     let instrumentedCodePath = writeTempInstrumentationFile(instrumentedCode.code);
-    let promise = jalangi.analyze(instrumentedCodePath, analysisFiles)
+    jalangi.analyze(instrumentedCodePath, analysisFiles)
         .then(
-        obj => {
-            console.log(obj.stdout);
-            cleanupTempData()
-        }
+            obj => {
+                console.log(obj.stdout);
+                cleanupTempData();
+            }
         )
         .catch(console.error);
 }
