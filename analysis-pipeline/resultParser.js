@@ -8,7 +8,7 @@ async function aggregateResults(resultsPath, destPath) {
             let resultFilePath = path.join(resultsPath, item);
 
             let parsedResult = parseResultFile(resultFilePath);
-            if(parsedResult) {
+            if (parsedResult) {
                 resultsMap.push(parsedResult);
             }
         }
@@ -32,13 +32,15 @@ function parseResultFile(resultFilePath) {
 
     try {
         let globalWrites = parseResult(result);
-        if(globalWrites) {
+        if (globalWrites) {
             return { name: libraryName, result: globalWrites };
         } else {
             return null;
         }
     } catch (error) {
-        console.log(`Error parsing global writes result for library: ${libraryName} \nresult: ${result} `);
+        console.log(
+            `Error parsing global writes result for library: ${libraryName} \nresult: ${result} `
+        );
         return null;
     }
 }

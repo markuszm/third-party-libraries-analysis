@@ -17,14 +17,14 @@ function downloadLibraries(url, path) {
         .toArray()
         // ToDo: remove subscription here and just return observable
         .subscribe(
-            (libraryPairs) => {
+            libraryPairs => {
                 fs.writeFile(path, JSON.stringify(libraryPairs), err => {
                     if (err) {
                         console.error(`Error writing the json: ${err}`);
                     }
                 });
             },
-            (error) => console.error(`Stopped with error: ${error}`),
+            error => console.error(`Stopped with error: ${error}`),
             () => console.log('Finished')
         );
 }
@@ -40,4 +40,4 @@ function downloadLibrary(library) {
         });
 }
 
-exports.downloadLibraries = downloadLibraries; 
+exports.downloadLibraries = downloadLibraries;

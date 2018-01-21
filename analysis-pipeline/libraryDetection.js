@@ -38,14 +38,18 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
     let detectedLibraries = [];
 
     websiteModel.forEach((objectHierarchy, variableName) => {
-        objectHierarchy.walk({ strategy: 'post' }, (node) => {
+        objectHierarchy.walk({ strategy: 'post' }, node => {
             let id = getIdOfNode(node);
             if (librariesModel.has(id)) {
                 let libraryMap = librariesModel.get(id);
                 let seenLibraries = [];
                 libraryMap.forEach((tree, library) => {
                     let similarity = treeComparer.compareTrees(tree, node);
-                    seenLibraries.push({ variable: variableName, library: library, confidence: similarity });
+                    seenLibraries.push({
+                        variable: variableName,
+                        library: library,
+                        confidence: similarity
+                    });
                 });
                 // TODO: sort seenLibraries after similarity
                 seenLibraries.sort((a, b) => {
@@ -63,7 +67,7 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
                 });
                 detectedLibraries.push(seenLibraries);
             }
-        })
+        });
     });
 
     console.log(detectedLibraries);

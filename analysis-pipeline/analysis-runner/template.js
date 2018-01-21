@@ -1,4 +1,5 @@
-const template = '<!DOCTYPE html> \
+const template =
+    '<!DOCTYPE html> \
 <html> \
 <head lang="en"> \
     <meta charset="UTF-8"> \
@@ -11,6 +12,6 @@ const template = '<!DOCTYPE html> \
 <body> \
 <h2>Analyzing global writes of <!--NAME--></h2> \
 </body> \
-</html>'
+</html>';
 
 exports.template = template;

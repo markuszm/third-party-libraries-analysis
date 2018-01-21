@@ -5,7 +5,7 @@ async function runAnalysisInBrowser(websiteFolder) {
     const app = express();
 
     app.use(express.static(websiteFolder));
-    
+
     let server = app.listen(3001, () => console.log('Analysis listening on port 3001!'));
 
     const browser = await puppeteer.launch();
@@ -29,9 +29,9 @@ async function runAnalysisInBrowser(websiteFolder) {
 
     try {
         console.log('navigating to analysis');
-        await page.goto('http://localhost:3001', {timeout: 30000});
+        await page.goto('http://localhost:3001', { timeout: 30000 });
         console.log('analysis finished');
-    } catch(err) {
+    } catch (err) {
         console.log('analysis timed out');
         errors += 'Error: Timeout';
     } finally {
@@ -39,26 +39,23 @@ async function runAnalysisInBrowser(websiteFolder) {
         page.evaluate('J$.analysis.endExecution()');
         await page.waitFor(30000);
 
-        if(writes.includes('"$": "Function"')) {
+        if (writes.includes('"$": "Function"')) {
             console.log('trying to detect JQuery version');
             try {
                 console.log(page.evaluate('$.fn.jquery'));
-                await page.waitFor(3000);        
-            }
-            catch(err) {
+                await page.waitFor(3000);
+            } catch (err) {
                 console.log('Website is not using JQuery');
             }
-        } 
-        else {
+        } else {
             console.log('Website is not using JQuery');
         }
 
         console.log('closing all resources');
         await browser.close();
         await server.close();
-        return {writes, errors};
+        return { writes, errors };
     }
-
 }
 
 exports.runWebsiteAnalysisInBrowser = runAnalysisInBrowser;

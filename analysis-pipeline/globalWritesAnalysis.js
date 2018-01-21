@@ -1,9 +1,7 @@
 // Author: Michael Pradel, Jibesh Patra
 
-(function (sandbox) {
-
+(function(sandbox) {
     function GlobalWritesAnalysis() {
-
         /*
          Store global props before any library is loaded
          We need this because this returns properties even if they are non-enumerable. Number could be overwritten but could
@@ -16,13 +14,12 @@
         var globalWritesTypes = {}; // access path --> type
         var alreadyVisited = new Set();
 
-        var theManyNamesOfGlobal = ["window", "top", "frames", "self", "parent"];
-        var manyDifferentTypes = ["undefined", "boolean", "number", "string", "symbol", "function"]; // Types except object
+        var theManyNamesOfGlobal = ['window', 'top', 'frames', 'self', 'parent'];
+        var manyDifferentTypes = ['undefined', 'boolean', 'number', 'string', 'symbol', 'function']; // Types except object
 
         function globalRefs(base, propName) {
             var result = [];
             for (var i = 0; i < globalProps.length; i++) {
-
                 // result = [];
                 var prop = globalProps[i];
                 var multiseg = prop.split('.');
@@ -38,9 +35,9 @@
                     // check for access to a global object's field
                     if (access === base) {
                         if (access === window) {
-                            result.push(propName);  // deal w/ writes to aliases of window, such as "top" and "self"
+                            result.push(propName); // deal w/ writes to aliases of window, such as "top" and "self"
                         } else {
-                            result.push(prop + "." + propName);
+                            result.push(prop + '.' + propName);
                         }
                     }
                     /**
@@ -50,15 +47,14 @@
                      * This necessarily means that the library might interfere with the built-
                      * in implementations of the browser.
                      */
-                    if (Object.getPrototypeOf(access) === base ||
-                        access.prototype === base) {
+                    if (Object.getPrototypeOf(access) === base || access.prototype === base) {
                         let property = myType(base);
 
                         // For non-primitives get the name of the object
                         if (property === 'object') {
                             property = prop;
                         }
-                        result.push(property + ".prototype." + propName);
+                        result.push(property + '.prototype.' + propName);
                         // result.push(prop + ".prototype." + propName);
                     }
                 }
@@ -81,7 +77,7 @@
                     let typeOfProp = myType(obj[prop]);
                     namesandTypes.set(prop, typeOfProp);
 
-                    if (typeOfProp === "object") {
+                    if (typeOfProp === 'object') {
                         let nestedProp = returnNestedPropNames(obj[prop]);
                         nestedProp.forEach((typeOfProp, accessPath) => {
                             namesandTypes.set(prop + '.' + accessPath, typeOfProp);
@@ -138,11 +134,11 @@
         }
 
         function isNull(obj) {
-            return obj === null;            
+            return obj === null;
         }
 
         function isUndefined(obj) {
-            return obj === void 0;            
+            return obj === void 0;
         }
 
         function isString(obj) {
@@ -153,7 +149,7 @@
             return toString.call(obj) === '[object ' + 'Arguments' + ']';
         }
 
-        this.write = function (iid, name, val, lhs, isGlobal, isScriptLocal) {
+        this.write = function(iid, name, val, lhs, isGlobal, isScriptLocal) {
             if (isGlobal) {
                 let globalname = 'window';
                 let typeOfCurrent = myType(val);
@@ -182,15 +178,14 @@
                         globalWritesTypes[name] = typeOfCurrent;
                         globalProps.push(name);
                     }
-                } else  globalWritesTypes[name] = typeOfCurrent;
-
+                } else globalWritesTypes[name] = typeOfCurrent;
             }
         };
 
         // TODO (by MP): Handle function declarations
         //       E.g., can you use the 'declare' hook, like this:
 
-        this.declare = function (iid, name, val, isArgument, argumentIndex, isCatchParam) {
+        this.declare = function(iid, name, val, isArgument, argumentIndex, isCatchParam) {
             if (typeof val === 'function' && window[name] === val) {
                 // add to globalProps and globalWritesTypes
                 globalWritesTypes[name] = myType(val);
@@ -225,14 +220,12 @@
                     let propName = properties[prop];
                     let accesspath;
                     // // For the
-                    if (currentAccessPath === 'window')
-                        accesspath = propName;
-                    else
-                        accesspath = currentAccessPath + "." + propName;
+                    if (currentAccessPath === 'window') accesspath = propName;
+                    else accesspath = currentAccessPath + '.' + propName;
 
                     let typeOfStart = myType(start);
 
-                    if (blackSet.has(propName) || typeOfStart === "Arguments") continue;
+                    if (blackSet.has(propName) || typeOfStart === 'Arguments') continue;
 
                     try {
                         var nextStart = start[propName];
@@ -247,7 +240,7 @@
 
                     if (typeOfStart === 'Function') {
                         /* Functions have two special properties 'length' and 'name' which I do not want to iterate */
-                        if (typeOfNextStart === "String" || typeOfNextStart === "Number") {
+                        if (typeOfNextStart === 'String' || typeOfNextStart === 'Number') {
                             continue;
                         }
                     }
@@ -255,7 +248,12 @@
                     if (nextStart === base) {
                         return accesspath;
                     } else {
-                        var isReachable = findReachableAccessPath(base, alreadyVisited, nextStart, accesspath);
+                        var isReachable = findReachableAccessPath(
+                            base,
+                            alreadyVisited,
+                            nextStart,
+                            accesspath
+                        );
                         if (isReachable !== false) {
                             return isReachable;
                         }
@@ -265,7 +263,7 @@
             return false; // The access path is not reachable
         }
 
-        this.putField = function (iid, base, offset, val, isComputed, isOpAssign) {
+        this.putField = function(iid, base, offset, val, isComputed, isOpAssign) {
             alreadyVisited.clear();
             var reachablePath = findReachableAccessPath(base, alreadyVisited, window, 'window');
             let typeOfCurrent = myType(val);
@@ -284,8 +282,7 @@
                         if (nestedProp.size === 0) {
                             globalWritesTypes[reachablePath + '.' + offset] = typeOfCurrent;
                         }
-                    } else
-                        globalWritesTypes[reachablePath + '.' + offset] = typeOfCurrent;
+                    } else globalWritesTypes[reachablePath + '.' + offset] = typeOfCurrent;
                 }
             }
 
@@ -297,7 +294,7 @@
             }
         };
 
-        this.endExecution = function () {
+        this.endExecution = function() {
             /* At the end of execution check again if the properties exists.
              * Some properties might get deleted in the meantime.
              * */
@@ -311,10 +308,8 @@
                         if (val === 'START') {
                             if (window.hasOwnProperty(p)) {
                                 val = window[p];
-                            } else
-                                propertyExists = false;
-                        }
-                        else {
+                            } else propertyExists = false;
+                        } else {
                             let check = false;
                             // val = null;
                             try {
@@ -326,9 +321,7 @@
 
                             if (val && check) {
                                 val = val[p];
-                            }
-                            else
-                                propertyExists = false;
+                            } else propertyExists = false;
                         }
                     });
 
@@ -338,8 +331,7 @@
                         if (typeOfCurrent !== globalWritesTypes[key]) {
                             delete globalWritesTypes[key];
                         }
-                    } else
-                        delete globalWritesTypes[key];
+                    } else delete globalWritesTypes[key];
                 } catch (err) {
                     throw err;
                     // If access to the key is not possible then delete it
@@ -347,11 +339,9 @@
                 }
                 // console.log(val);
             }
-            console.log("global writes:\n" + JSON.stringify(globalWritesTypes, 0, 2));
+            console.log('global writes:\n' + JSON.stringify(globalWritesTypes, 0, 2));
         };
-
     }
 
     sandbox.analysis = new GlobalWritesAnalysis();
-
 })(J$);

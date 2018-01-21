@@ -16,11 +16,10 @@ async function createHTMLs(pathToLibraries, destination) {
 
     for (const library of libraries) {
         const htmlPath = path.join(destination, `${library.name}.html`);
-        if(fileUtil.checkFileExists(htmlPath)) {
+        if (fileUtil.checkFileExists(htmlPath)) {
             // file already exists skip to save performance
             console.log(`HTML already exists: ${library.name}`);
-        } 
-        else {
+        } else {
             instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv);
         }
     }
@@ -28,9 +27,9 @@ async function createHTMLs(pathToLibraries, destination) {
 
 function instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv) {
     let code = library.js;
-    // checks for size of library - instrumentation takes too much memory 
-    if(getBinarySize(code) > 15000000) {
-        console.log(`Skipping library ${library.name}, file size too large for instrumentation`);    
+    // checks for size of library - instrumentation takes too much memory
+    if (getBinarySize(code) > 15000000) {
+        console.log(`Skipping library ${library.name}, file size too large for instrumentation`);
         return;
     }
     console.log(`Instrumenting ${library.name}`);
@@ -55,14 +54,28 @@ function loadAnalysisCode() {
 }
 
 function loadJalangiEnv() {
-    let esotope = fs.readFileSync('node_modules/jalangi2/node_modules/esotope/esotope.js', { encoding: 'utf8' });
-    let acorn = fs.readFileSync('node_modules/jalangi2/node_modules/acorn/dist/acorn.js', { encoding: 'utf8' });
-    let constants = fs.readFileSync('node_modules/jalangi2/src/js/Constants.js', { encoding: 'utf8' });
+    let esotope = fs.readFileSync('node_modules/jalangi2/node_modules/esotope/esotope.js', {
+        encoding: 'utf8'
+    });
+    let acorn = fs.readFileSync('node_modules/jalangi2/node_modules/acorn/dist/acorn.js', {
+        encoding: 'utf8'
+    });
+    let constants = fs.readFileSync('node_modules/jalangi2/src/js/Constants.js', {
+        encoding: 'utf8'
+    });
     let config = fs.readFileSync('node_modules/jalangi2/src/js/Config.js', { encoding: 'utf8' });
-    let astUtil = fs.readFileSync('node_modules/jalangi2/src/js/instrument/astUtil.js', { encoding: 'utf8' });
-    let esnstrument = fs.readFileSync('node_modules/jalangi2/src/js/instrument/esnstrument.js', { encoding: 'utf8' });
-    let iidToLocation = fs.readFileSync('node_modules/jalangi2/src/js/runtime/iidToLocation.js', { encoding: 'utf8' });
-    let analysis = fs.readFileSync('node_modules/jalangi2/src/js/runtime/analysis.js', { encoding: 'utf8' });
+    let astUtil = fs.readFileSync('node_modules/jalangi2/src/js/instrument/astUtil.js', {
+        encoding: 'utf8'
+    });
+    let esnstrument = fs.readFileSync('node_modules/jalangi2/src/js/instrument/esnstrument.js', {
+        encoding: 'utf8'
+    });
+    let iidToLocation = fs.readFileSync('node_modules/jalangi2/src/js/runtime/iidToLocation.js', {
+        encoding: 'utf8'
+    });
+    let analysis = fs.readFileSync('node_modules/jalangi2/src/js/runtime/analysis.js', {
+        encoding: 'utf8'
+    });
     return `${esotope} \n ${acorn} \n ${constants} \n ${config} \n ${astUtil} \n ${esnstrument} \n ${iidToLocation} \n ${analysis} \n`;
 }
 

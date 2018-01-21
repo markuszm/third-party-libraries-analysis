@@ -7,23 +7,22 @@ async function downloadLibraries(url, path) {
         uri: url,
         json: true // Automatically parses the JSON string in the response
     };
-    
+
     let amountOfFailedDownloads = 0;
     let currentIndex = 0;
 
     let response = await request(options);
     let libraryList = response.results;
     console.log(`Number of libaries to download: ${libraryList.length}`);
-    
-    for(let library of libraryList) {
+
+    for (let library of libraryList) {
         try {
-            if(!library.latest.endsWith('.js')) continue;
+            if (!library.latest.endsWith('.js')) continue;
             currentIndex++;
             let jsFile = await downloadLibrary(library.latest);
             console.log(`Downloaded: ${library.name} - ${currentIndex}/${libraryList.length}`);
-            libraryPairs.push({name: library.name, js: jsFile});
-        }
-        catch(err) {
+            libraryPairs.push({ name: library.name, js: jsFile });
+        } catch (err) {
             amountOfFailedDownloads++;
             console.error(`Could not load library ${library.name} with error: ${err}`);
         }

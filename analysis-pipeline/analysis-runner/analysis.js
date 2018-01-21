@@ -8,13 +8,12 @@ var tempFolder = './tmp';
 function analyzeCodeFile(code, analysisFiles) {
     let instrumentedCode = jalangi.instrumentString(code, {});
     let instrumentedCodePath = writeTempInstrumentationFile(instrumentedCode.code);
-    jalangi.analyze(instrumentedCodePath, analysisFiles)
-        .then(
-            obj => {
-                console.log(obj.stdout);
-                cleanupTempData();
-            }
-        )
+    jalangi
+        .analyze(instrumentedCodePath, analysisFiles)
+        .then(obj => {
+            console.log(obj.stdout);
+            cleanupTempData();
+        })
         .catch(console.error);
 }
 
