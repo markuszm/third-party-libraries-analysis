@@ -17,7 +17,7 @@ function compareTrees(root1, root2) {
     // Source: https://stackoverflow.com/questions/10405440/percentage-rank-of-matches-using-levenshtein-distance-matching
     let percentage = (1 - distance / Math.max(treeIds1.length, treeIds2.length)) * 100;
 
-    return percentage;
+    return percentage.toFixed(2);
 }
 
 exports.compareTrees = compareTrees;

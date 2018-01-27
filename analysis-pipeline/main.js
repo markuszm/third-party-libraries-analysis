@@ -119,12 +119,27 @@ program.command('model <resultPath>').action(async resultPath => {
 });
 
 program
-    .command('detect <websiteResult> <resultMap>')
-    .action(async (websiteResultPath, librariesResultPath) => {
-        libraryDetection.detectLibraries(websiteResultPath, librariesResultPath);
+    .command('detect <websiteResult> <resultMap> <destPath>')
+    .action(async (websiteResultPath, librariesResultPath, destPath) => {
+        await fileUtil.ensureExistsAsync(destPath);
+
+        let results = libraryDetection.detectLibraries(websiteResultPath, librariesResultPath);
+
+        let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultPath)}`);
+        fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
     });
 
 program.parse(process.argv);
+
+function strMapToObj(map) {
+    let obj = Object.create(null);
+    for (let [k,v] of map) {
+        // We don’t escape the key '__proto__'
+        // which can cause problems on older engines
+        obj[k] = v;
+    }
+    return obj;
+}
 
 async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
     await embedder.createHtmlJson(librariesPath, htmlsPath);

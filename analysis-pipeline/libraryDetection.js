@@ -35,23 +35,30 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
     // function/object tree hierarchies of global writes detected on website
     let websiteModel = generateWebsiteModel(websiteResultPath);
 
-    let detectedLibraries = [];
-
     websiteModel.forEach((objectHierarchy, variableName) => {
+        console.log(variableName);
+        prettyPrintTree(objectHierarchy, '', true);
+        console.log();
+    });
+
+    let detectedLibraries = new Map();
+
+    websiteModel.forEach((objectHierarchy) => {
         objectHierarchy.walk({ strategy: 'post' }, node => {
             let id = getIdOfNode(node);
+            
             if (librariesModel.has(id)) {
                 let libraryMap = librariesModel.get(id);
                 let seenLibraries = [];
+                
                 libraryMap.forEach((tree, library) => {
                     let similarity = treeComparer.compareTrees(tree, node);
                     seenLibraries.push({
-                        variable: variableName,
                         library: library,
                         confidence: similarity
                     });
                 });
-                // TODO: sort seenLibraries after similarity
+
                 seenLibraries.sort((a, b) => {
                     let confidenceA = a.confidence;
                     let confidenceB = b.confidence;
@@ -62,17 +69,31 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
                         return 1;
                     }
 
-                    // names must be equal
                     return 0;
                 });
-                detectedLibraries.push(seenLibraries);
+
+                if (!detectedLibraries.has(id)) {
+                    detectedLibraries.set(id, seenLibraries);
+                } else {
+                    detectedLibraries.get(id).push(...seenLibraries);
+                }
             }
         });
     });
 
-    console.log(detectedLibraries);
+    return detectedLibraries;
 }
 
+function prettyPrintTree(node, indent, last) {
+    console.log(indent + '- ' + node.model.id);
+    indent += last ? '   ' : '|  ';
+
+    for (let i = 0; i < node.children.length; i++) {
+        prettyPrintTree(node.children[i], indent, i == node.children.length - 1);
+    }
+}
+
+exports.prettyPrintTree = prettyPrintTree;
 exports.detectLibraries = detectLibraries;
 exports.generateLibrariesModel = generateLibrariesModel;
 exports.generateWebsiteModel = generateWebsiteModel;
