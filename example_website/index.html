@@ -1,0 +1,20 @@
+<html>
+    <head>
+        <script src="./jquery-3.3.1.min.js"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    </head>
+    <body>
+        <h1>Hello! This is a sample website testing jQuery</h1>
+        <p>This paragraph will be modified</p>
+
+        <script>
+            $('p').html("This paragraph was modified by some jQuery");
+        </script>
+
+        <script>
+            alert('Suprise, it also uses underscore');
+            _.each($('*'), (node) => alert(node));
+        </script>
+    </body>
+</html>
