@@ -53,3 +53,4 @@ function downloadAllWebsites(dest) {
 }
 
 exports.downloadAllWebsites = downloadAllWebsites;
+exports.scrapeWebsite = scrapeWebsite;
