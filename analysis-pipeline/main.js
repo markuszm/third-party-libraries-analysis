@@ -103,6 +103,7 @@ program
         }
     });
 
+// just for testing model generation algorithm from website global write results
 program.command('modelWebsite <resultPath>').action(async resultPath => {
     let model = libraryDetection.generateWebsiteModel(resultPath);
 
@@ -112,6 +113,7 @@ program.command('modelWebsite <resultPath>').action(async resultPath => {
     });
 });
 
+// just for testing model generation algorithm from libraries global write results
 program.command('model <resultPath>').action(async resultPath => {
     let variableHierarchies = libraryDetection.generateLibrariesModel(resultPath);
 
@@ -127,6 +129,21 @@ program
 
         let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultPath)}`);
         fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
+    });
+
+program
+    .command('detectAll <websiteResultsPath> <resultMap> <destPath>')
+    .action(async (websiteResultsFolder, librariesResultPath, destPath) => {
+        await fileUtil.ensureExistsAsync(destPath);
+
+        let websiteResultPaths = fs.readdirSync(websiteResultsFolder);
+
+        for (const fileName of websiteResultPaths) {
+            let results = libraryDetection.detectLibraries(path.join(websiteResultsFolder, fileName), librariesResultPath);
+            
+            let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
+            fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
+        }
     });
 
 program.parse(process.argv);
