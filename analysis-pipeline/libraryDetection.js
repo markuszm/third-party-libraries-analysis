@@ -35,29 +35,30 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
     // function/object tree hierarchies of global writes detected on website
     let websiteModel = generateWebsiteModel(websiteResultPath);
 
-    websiteModel.forEach((objectHierarchy, variableName) => {
-        console.log(variableName);
-        prettyPrintTree(objectHierarchy, '', true);
-        console.log();
-    });
+    // pretty print trees for debug purpose
+    // websiteModel.forEach((objectHierarchy, variableName) => {
+    //     console.log(variableName);
+    //     prettyPrintTree(objectHierarchy, '', true);
+    //     console.log();
+    // });
 
     let detectedLibraries = new Map();
 
     websiteModel.forEach((objectHierarchy) => {
         objectHierarchy.walk({ strategy: 'post' }, node => {
             let id = getIdOfNode(node);
-            
+
             if (librariesModel.has(id)) {
                 let libraryMap = librariesModel.get(id);
                 let seenLibraries = [];
-                
-                libraryMap.forEach((tree, library) => {
-                    let similarity = treeComparer.compareTrees(tree, node);
+
+                for (let [library, tree] of libraryMap) {
+                    let similarity = treeComparer.compareTreeWithTreeDistance(tree, node);
                     seenLibraries.push({
                         library: library,
                         confidence: similarity
                     });
-                });
+                }
 
                 seenLibraries.sort((a, b) => {
                     let confidenceA = a.confidence;
@@ -75,7 +76,12 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
                 if (!detectedLibraries.has(id)) {
                     detectedLibraries.set(id, seenLibraries);
                 } else {
-                    detectedLibraries.get(id).push(...seenLibraries);
+                    let oldList = detectedLibraries.get(id);
+                    for (const otherLib of seenLibraries) {
+                        if(!oldList.find((lib) => lib.library === otherLib.library && lib.confidence === otherLib.confidence)) {
+                            oldList.push(otherLib);
+                        }
+                    }
                 }
             }
         });
@@ -92,6 +98,8 @@ function prettyPrintTree(node, indent, last) {
         prettyPrintTree(node.children[i], indent, i == node.children.length - 1);
     }
 }
+
+
 
 exports.prettyPrintTree = prettyPrintTree;
 exports.detectLibraries = detectLibraries;

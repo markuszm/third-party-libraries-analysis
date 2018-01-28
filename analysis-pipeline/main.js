@@ -126,7 +126,7 @@ program
         await fileUtil.ensureExistsAsync(destPath);
 
         let results = libraryDetection.detectLibraries(websiteResultPath, librariesResultPath);
-
+        
         let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultPath)}`);
         fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
     });
@@ -140,7 +140,6 @@ program
 
         for (const fileName of websiteResultPaths) {
             let results = libraryDetection.detectLibraries(path.join(websiteResultsFolder, fileName), librariesResultPath);
-            
             let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
             fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
         }
