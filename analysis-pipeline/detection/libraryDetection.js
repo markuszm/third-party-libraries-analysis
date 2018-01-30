@@ -60,19 +60,6 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
                     });
                 }
 
-                seenLibraries.sort((a, b) => {
-                    let confidenceA = a.confidence;
-                    let confidenceB = b.confidence;
-                    if (confidenceA > confidenceB) {
-                        return -1;
-                    }
-                    if (confidenceA < confidenceB) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
-
                 if (!detectedLibraries.has(id)) {
                     detectedLibraries.set(id, seenLibraries);
                 } else {
@@ -86,6 +73,21 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
             }
         });
     });
+
+    for (let libraries of detectedLibraries.values()) {
+        libraries.sort((a, b) => {
+            let confidenceA = parseFloat(a.confidence);
+            let confidenceB = parseFloat(b.confidence);
+            if (confidenceA > confidenceB) {
+                return -1;
+            }
+            if (confidenceA < confidenceB) {
+                return 1;
+            }
+
+            return 0;
+        });
+    }
 
     return detectedLibraries;
 }
