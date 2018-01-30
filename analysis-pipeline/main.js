@@ -2,12 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const program = require('commander');
 
-const analysisRunner = require('./analysis-runner/runner');
+const analysisRunner = require('./library-analysis/runner');
 const downloader = require('./library-downloader/downloader');
-const embedder = require('./analysis-runner/embedder');
+const embedder = require('./library-analysis/embedder');
 const fileUtil = require('./fileUtil');
-const libraryDetection = require('./libraryDetection');
-const resultParser = require('./resultParser');
+const libraryDetection = require('./detection/libraryDetection');
+const resultParser = require('./library-analysis/resultParser');
 const websiteAnalysisRunner = require('./website-analysis/runner');
 const websiteInstrument = require('./website-analysis/instrument');
 const websiteScraper = require('./website-analysis/scraper');
