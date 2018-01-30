@@ -4,16 +4,22 @@ const fs = require('fs');
 async function aggregateResults(resultsPath, destPath) {
     await fs.readdir(resultsPath, async (err, items) => {
         let resultsMap = [];
+        let errors = [];
         for (let item of items) {
             let resultFilePath = path.join(resultsPath, item);
 
             let parsedResult = parseResultFile(resultFilePath);
             if (parsedResult) {
-                resultsMap.push(parsedResult);
+                if(parsedResult.error) {
+                    errors.push({name: item, result: parsedResult});
+                } else {
+                    resultsMap.push({name: parsedResult.name, result: parsedResult.result});
+                }
             }
         }
 
         fs.writeFileSync(path.join(destPath, 'map.json'), JSON.stringify(resultsMap));
+        fs.writeFileSync(path.join(destPath, 'errors.json'), JSON.stringify(errors));
     });
 }
 
@@ -22,26 +28,26 @@ function parseResultFile(resultFilePath) {
         return null;
     }
 
+    let libraryName = path.basename(resultFilePath).replace('.html.json', '');
+
     let contents = fs.readFileSync(resultFilePath, { encoding: 'utf8' });
     let result = JSON.parse(contents);
-    if (result.errors.includes('Error') || result.errors.includes('ERROR')) {
-        return null;
+    if (result.errors.includes('Error: Timeout') || result.writes === "") {
+        return {error: true, name: libraryName, result: result};
     }
-
-    let libraryName = path.basename(resultFilePath).split('.')[0];
 
     try {
         let globalWrites = parseResult(result);
         if (globalWrites) {
-            return { name: libraryName, result: globalWrites };
+            return { error: false, name: libraryName, result: globalWrites };
         } else {
-            return null;
+            return {error: false, name: libraryName, result: {}};
         }
     } catch (error) {
         console.log(
-            `Error parsing global writes result for library: ${libraryName} \nresult: ${result} `
+            `Error parsing global writes result for library: ${libraryName} \nresult: ${error} `
         );
-        return null;
+        return {error: true, name: libraryName, result: error};
     }
 }
 
