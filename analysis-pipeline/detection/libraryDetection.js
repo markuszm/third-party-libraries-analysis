@@ -19,13 +19,14 @@ function generateLibrariesModel(resultPath) {
     let contents = fs.readFileSync(resultPath, { encoding: 'utf8' });
     let resultPairs = JSON.parse(contents);
 
-    let variableHierarchies = new Map();
+    let variableUsageMap = new Map();
+    let libraryVariablesMap = new Map();
 
     for (const resultPair of resultPairs) {
         let libraryName = resultPair.name;
-        modelGenerator.transformLibraryResults(resultPair.result, variableHierarchies, libraryName);
+        modelGenerator.transformLibraryResults(resultPair.result, variableUsageMap, libraryVariablesMap, libraryName);
     }
-    return variableHierarchies;
+    return { variableUsageMap, libraryVariablesMap };
 }
 
 function detectLibraries(websiteResultPath, librariesResultPath) {
@@ -46,34 +47,44 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
 
     websiteModel.forEach((objectHierarchy) => {
         objectHierarchy.walk({ strategy: 'post' }, node => {
-            let id = getIdOfNode(node);
+            let variable = getIdOfNode(node);
 
-            if (librariesModel.has(id)) {
-                let libraryMap = librariesModel.get(id);
-                let seenLibraries = [];
+            // when variable is not root in any library tree then continue
+            if (!librariesModel.variableUsageMap.has(variable)) return;
 
-                for (let [library, tree] of libraryMap) {
-                    let similarity = treeComparer.compareTreeWithTreeDistance(tree, node);
-                    seenLibraries.push({
-                        library: library,
-                        confidence: similarity
-                    });
-                }
 
-                if (!detectedLibraries.has(id)) {
-                    detectedLibraries.set(id, seenLibraries);
-                } else {
-                    let oldList = detectedLibraries.get(id);
-                    for (const otherLib of seenLibraries) {
-                        if(!oldList.find((lib) => lib.library === otherLib.library && lib.confidence === otherLib.confidence)) {
-                            oldList.push(otherLib);
-                        }
+            let libraryList = librariesModel.variableUsageMap.get(variable);
+            let seenLibraries = [];
+
+            // todo: store library and variable as seen then later compare trees based on library forest
+            for (let library of libraryList) {
+                let libraryTree = librariesModel.libraryVariablesMap.get(library).get(variable);
+                let similarity = treeComparer.compareTreeWithTreeDistance(libraryTree, node);
+                seenLibraries.push({
+                    library: library,
+                    confidence: similarity
+                });
+            }
+
+            if (!detectedLibraries.has(variable)) {
+                detectedLibraries.set(variable, seenLibraries);
+            } else {
+                let oldList = detectedLibraries.get(variable);
+                for (const otherLib of seenLibraries) {
+                    if (!oldList.find((lib) => lib.library === otherLib.library && lib.confidence === otherLib.confidence)) {
+                        oldList.push(otherLib);
                     }
                 }
             }
         });
     });
 
+    sortDetectedLibraries(detectedLibraries);
+
+    return detectedLibraries;
+}
+
+function sortDetectedLibraries(detectedLibraries) {
     for (let libraries of detectedLibraries.values()) {
         libraries.sort((a, b) => {
             let confidenceA = parseFloat(a.confidence);
@@ -88,8 +99,6 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
             return 0;
         });
     }
-
-    return detectedLibraries;
 }
 
 function prettyPrintTree(node, indent, last) {

@@ -38,34 +38,48 @@ function transformWebsiteResults(result) {
     return variableHierarchies;
 }
 
-function transformLibraryResults(result, variableHierarchies, libraryName) {
+function transformLibraryResults(result, variableUsageMap, libraryVariablesMap, libraryName) {
     for (const variable in result) {
-        if (result.hasOwnProperty(variable)) {
-            let variableChain = variable.split('.');
-            let root = variableChain[0];
+        if (!result.hasOwnProperty(variable)) continue;
 
-            if (variableHierarchies.has(root)) {
-                let hierarchyMap = variableHierarchies.get(root);
+        let variableChain = variable.split('.');
+        let root = variableChain[0];
 
-                // check if Hierarchy for this library already exists else create a new one
-                if (hierarchyMap.has(libraryName)) {
-                    let hierarchy = hierarchyMap.get(libraryName);
-                    addVariablesAsChildren(hierarchy, variableChain);
-                } else {
-                    let hierarchy = treeModel.parse({ id: root, children: [] });
-                    addVariablesAsChildren(hierarchy, variableChain);
-                    hierarchyMap.set(libraryName, hierarchy);
-                }
-            } else {
-                let hierarchy = treeModel.parse({ id: root, children: [] });
-                addVariablesAsChildren(hierarchy, variableChain);
+        // variableUsageMap population
+        if (variableUsageMap.has(root)) {
+            let libraryList = variableUsageMap.get(root);
 
-                // initialize variable in hierarchies map and tree hierarchy map (Library -> Tree Hierarchy)
-                let hierarchyMap = new Map();
-                hierarchyMap.set(libraryName, hierarchy);
-                variableHierarchies.set(root, hierarchyMap);
+            if (!libraryList.includes(libraryName)) {
+                libraryList.push(libraryName);
+            }
+        } else {
+            variableUsageMap.set(root, [libraryName]);
+        }
+
+        // libraryVariablesMap population
+        if (libraryVariablesMap.has(libraryName)) {
+            let libraryTrees = libraryVariablesMap.get(libraryName);
+            // check if tree for this variable already exists else create a new one
+            if (libraryTrees.has(root)) {
+                let tree = libraryTrees.get(root);
+                addVariablesAsChildren(tree, variableChain);
+            }
+            else {
+                let tree = treeModel.parse({ id: root, children: [] });
+                addVariablesAsChildren(tree, variableChain);
+                libraryTrees.set(root, tree);
             }
         }
+        else {
+            let libraryTrees = new Map();
+            let tree = treeModel.parse({ id: root, children: [] });
+            addVariablesAsChildren(tree, variableChain);
+
+            libraryTrees.set(root, tree);
+
+            libraryVariablesMap.set(libraryName, libraryTrees);
+        }
+
     }
 }
 

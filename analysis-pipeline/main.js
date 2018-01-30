@@ -115,9 +115,10 @@ program.command('modelWebsite <resultPath>').action(async resultPath => {
 
 // just for testing model generation algorithm from libraries global write results
 program.command('model <resultPath>').action(async resultPath => {
-    let variableHierarchies = libraryDetection.generateLibrariesModel(resultPath);
+    let librariesModel = libraryDetection.generateLibrariesModel(resultPath);
 
-    console.log(variableHierarchies.get('$'));
+    console.log(librariesModel.variableUsageMap.get('$'));
+    console.log(librariesModel.libraryVariablesMap.get('jquery'));
 });
 
 program
