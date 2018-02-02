@@ -1,5 +1,5 @@
 const levenshtein = require('fast-levenshtein');
-const exec = require('child_process').execSync
+const exec = require('child_process').execSync;
 
 function compareTreeWithStringMatching(root1, root2) {
     let treeIds1 = '';
@@ -27,22 +27,18 @@ function compareTreeWithTreeDistance(root1, root2) {
 
     let nodeCountTree1 = 0;
     let nodeCountTree2 = 0;
-    
-    root1.walk(node => {
-        nodeCountTree1++;
-    });
-    root2.walk(node => {
-        nodeCountTree2++;
-    });
-    
-    let maxNodes = Math.max(nodeCountTree1, nodeCountTree2)
-    
+
+    root1.walk(() => nodeCountTree1++);
+    root2.walk(() => nodeCountTree2++);
+
+    let maxNodes = Math.max(nodeCountTree1, nodeCountTree2);
+
     let distance = maxNodes;
 
     const pathToLib = './libs/apted.jar';
 
-    const stdout = exec(`java -jar ${pathToLib} -t ${tree1AsString} ${tree2AsString}`).toString();
-    
+    const stdout = exec(`java -jar ${pathToLib} -t '${tree1AsString}' '${tree2AsString}'`).toString();
+
     let distanceF = parseFloat(stdout);
     if (distanceF !== Number.NaN) {
         distance = distanceF;
@@ -59,11 +55,9 @@ function treeBracketNotation(node) {
     for (let child of node.children) {
         treeEncoding += treeBracketNotation(child);
     }
-    treeEncoding += '}'
+    treeEncoding += '}';
     return treeEncoding;
 }
-
-
 
 exports.compareTreeWithStringMatching = compareTreeWithStringMatching;
 exports.compareTreeWithTreeDistance = compareTreeWithTreeDistance;
