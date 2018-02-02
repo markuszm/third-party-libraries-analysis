@@ -129,7 +129,7 @@ program
         let results = libraryDetection.detectLibraries(websiteResultPath, librariesResultPath);
         
         let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultPath)}`);
-        fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
+        fs.writeFileSync(resultFilePath, JSON.stringify(results));
     });
 
 program
@@ -142,7 +142,7 @@ program
         for (const fileName of websiteResultPaths) {
             let results = libraryDetection.detectLibraries(path.join(websiteResultsFolder, fileName), librariesResultPath);
             let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
-            fs.writeFileSync(resultFilePath, JSON.stringify(strMapToObj(results)));
+            fs.writeFileSync(resultFilePath, JSON.stringify(results));
         }
     });
 

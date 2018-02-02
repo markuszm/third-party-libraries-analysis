@@ -3,6 +3,8 @@ const treeComparer = require('./treeComparer');
 
 const fs = require('fs');
 
+const MIN_CONFIDENCE = 75.0;
+
 function getIdOfNode(node) {
     return node.model.id;
 }
@@ -24,7 +26,12 @@ function generateLibrariesModel(resultPath) {
 
     for (const resultPair of resultPairs) {
         let libraryName = resultPair.name;
-        modelGenerator.transformLibraryResults(resultPair.result, variableUsageMap, libraryVariablesMap, libraryName);
+        modelGenerator.transformLibraryResults(
+            resultPair.result,
+            variableUsageMap,
+            libraryVariablesMap,
+            libraryName
+        );
     }
     return { variableUsageMap, libraryVariablesMap };
 }
@@ -43,62 +50,97 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
     //     console.log();
     // });
 
-    let detectedLibraries = new Map();
+    console.log('Created library model and website model');
 
-    websiteModel.forEach((objectHierarchy) => {
-        objectHierarchy.walk({ strategy: 'post' }, node => {
-            let variable = getIdOfNode(node);
+    let detectedLibraries = [];
 
-            // when variable is not root in any library tree then continue
-            if (!librariesModel.variableUsageMap.has(variable)) return;
+    let seenLibraries = new Set();
+    let matchedNodesMap = new Map();
 
+    websiteModel.forEach(tree => {
+        let rootVariable = getIdOfNode(tree);
+        if (!librariesModel.variableUsageMap.has(rootVariable)) {
+            tree.walk({ strategy: 'post' }, node => {
+                let variable = getIdOfNode(node);
 
-            let libraryList = librariesModel.variableUsageMap.get(variable);
-            let seenLibraries = [];
+                // when variable is not root of any library tree then continue
+                if (!librariesModel.variableUsageMap.has(variable)) return;
 
-            // todo: store library and variable as seen then later compare trees based on library forest
-            for (let library of libraryList) {
-                let libraryTree = librariesModel.libraryVariablesMap.get(library).get(variable);
-                let similarity = treeComparer.compareTreeWithTreeDistance(libraryTree, node);
-                seenLibraries.push({
+                let libraryList = librariesModel.variableUsageMap.get(variable);
+                libraryList.forEach(library => seenLibraries.add(library));
+                matchedNodesMap.set(variable, node);
+            });
+        } else {
+            let libraryList = librariesModel.variableUsageMap.get(rootVariable);
+            libraryList.forEach(library => seenLibraries.add(library));
+            matchedNodesMap.set(rootVariable, tree);
+        }
+    });
+
+    console.log('Walked through the website trees');
+
+    for (let library of seenLibraries) {
+        let libraryForestMap = librariesModel.libraryVariablesMap.get(library);
+        let similarityPercentage = 0;
+        let treeCount = 0;
+        for (const [rootId, tree] of libraryForestMap) {
+            let similarity = 0;
+            if (matchedNodesMap.has(rootId)) {
+                similarity = parseFloat(
+                    treeComparer.compareTreeWithTreeDistance(tree, matchedNodesMap.get(rootId))
+                );
+            }
+            similarityPercentage += similarity;
+            treeCount++;
+        }
+        let averageSimilarity = similarityPercentage / treeCount;
+
+        // todo: add isEqual method for arrays
+        let nodeIds = Array.from(libraryForestMap.keys()).toString();
+
+        // check if there is already a library that has same node ids but different confidence -> replace if higher confidence
+        let indexOtherLibrary = detectedLibraries.findIndex(library => library.nodeIds === nodeIds);
+        if (indexOtherLibrary >= 0) {
+            if (detectedLibraries[indexOtherLibrary].confidence < averageSimilarity) {
+                detectedLibraries.splice(indexOtherLibrary, 1, {
                     library: library,
-                    confidence: similarity
+                    nodeIds: nodeIds,
+                    confidence: averageSimilarity
                 });
             }
+        } else {
+            detectedLibraries.push({
+                library: library,
+                nodeIds: nodeIds,
+                confidence: averageSimilarity
+            });
+        }
+    }
 
-            if (!detectedLibraries.has(variable)) {
-                detectedLibraries.set(variable, seenLibraries);
-            } else {
-                let oldList = detectedLibraries.get(variable);
-                for (const otherLib of seenLibraries) {
-                    if (!oldList.find((lib) => lib.library === otherLib.library && lib.confidence === otherLib.confidence)) {
-                        oldList.push(otherLib);
-                    }
-                }
-            }
-        });
-    });
+    detectedLibraries = filterLowConfidence(detectedLibraries);
 
     sortDetectedLibraries(detectedLibraries);
 
     return detectedLibraries;
 }
 
-function sortDetectedLibraries(detectedLibraries) {
-    for (let libraries of detectedLibraries.values()) {
-        libraries.sort((a, b) => {
-            let confidenceA = parseFloat(a.confidence);
-            let confidenceB = parseFloat(b.confidence);
-            if (confidenceA > confidenceB) {
-                return -1;
-            }
-            if (confidenceA < confidenceB) {
-                return 1;
-            }
+function filterLowConfidence(detectedLibraries) {
+    return detectedLibraries.filter(library => library.confidence > MIN_CONFIDENCE);
+}
 
-            return 0;
-        });
-    }
+function sortDetectedLibraries(detectedLibraries) {
+    detectedLibraries.sort((a, b) => {
+        let confidenceA = parseFloat(a.confidence);
+        let confidenceB = parseFloat(b.confidence);
+        if (confidenceA > confidenceB) {
+            return -1;
+        }
+        if (confidenceA < confidenceB) {
+            return 1;
+        }
+
+        return 0;
+    });
 }
 
 function prettyPrintTree(node, indent, last) {
@@ -109,8 +151,6 @@ function prettyPrintTree(node, indent, last) {
         prettyPrintTree(node.children[i], indent, i == node.children.length - 1);
     }
 }
-
-
 
 exports.prettyPrintTree = prettyPrintTree;
 exports.detectLibraries = detectLibraries;
