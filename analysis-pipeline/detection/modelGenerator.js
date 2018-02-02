@@ -43,39 +43,39 @@ function transformLibraryResults(result, variableUsageMap, libraryVariablesMap, 
         if (!result.hasOwnProperty(variable)) continue;
 
         let variableChain = variable.split('.');
-        let root = variableChain[0];
+        let rootId = variableChain[0];
 
-        // variableUsageMap population
-        if (variableUsageMap.has(root)) {
-            let libraryList = variableUsageMap.get(root);
+        // variableUsageMap population: variable -> list of libraries defining this variable
+        if (variableUsageMap.has(rootId)) {
+            let libraryList = variableUsageMap.get(rootId);
 
             if (!libraryList.includes(libraryName)) {
                 libraryList.push(libraryName);
             }
         } else {
-            variableUsageMap.set(root, [libraryName]);
+            variableUsageMap.set(rootId, [libraryName]);
         }
 
-        // libraryVariablesMap population
+        // libraryVariablesMap population: library -> variable trees Map:(id -> tree)
         if (libraryVariablesMap.has(libraryName)) {
             let libraryTrees = libraryVariablesMap.get(libraryName);
             // check if tree for this variable already exists else create a new one
-            if (libraryTrees.has(root)) {
-                let tree = libraryTrees.get(root);
+            if (libraryTrees.has(rootId)) {
+                let tree = libraryTrees.get(rootId);
                 addVariablesAsChildren(tree, variableChain);
             }
             else {
-                let tree = treeModel.parse({ id: root, children: [] });
+                let tree = treeModel.parse({ id: rootId, children: [] });
                 addVariablesAsChildren(tree, variableChain);
-                libraryTrees.set(root, tree);
+                libraryTrees.set(rootId, tree);
             }
         }
         else {
             let libraryTrees = new Map();
-            let tree = treeModel.parse({ id: root, children: [] });
+            let tree = treeModel.parse({ id: rootId, children: [] });
             addVariablesAsChildren(tree, variableChain);
 
-            libraryTrees.set(root, tree);
+            libraryTrees.set(rootId, tree);
 
             libraryVariablesMap.set(libraryName, libraryTrees);
         }

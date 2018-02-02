@@ -32,7 +32,7 @@ function parseResultFile(resultFilePath) {
 
     let contents = fs.readFileSync(resultFilePath, { encoding: 'utf8' });
     let result = JSON.parse(contents);
-    if (result.errors.includes('Error: Timeout') || result.writes === "") {
+    if (result.errors.includes('Error: Timeout') || result.writes === '') {
         return {error: true, name: libraryName, result: result};
     }
 
