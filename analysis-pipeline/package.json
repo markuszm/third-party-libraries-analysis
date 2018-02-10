@@ -13,6 +13,7 @@
     "express": "^4.16.2",
     "fast-levenshtein": "^2.0.6",
     "jalangi2": "0.2.5",
+    "jsdom": "^11.6.2",
     "mustache": "^2.3.0",
     "puppeteer": "^0.13.0",
     "request": "^2.83.0",
