@@ -86,7 +86,13 @@ program
 
         let websites = fs.readdirSync(websitesPath);
 
+        const blacklist = ['facebook.com', 'outlook.live.com', 'reddit.com', 'sohu.com']
+
         for (let website of websites) {
+            if(blacklist.includes(website)) {
+                console.log(`Website ${website} is blacklisted -> skipping`);
+                continue;
+            }
             let resultFileName = path.basename(path.join(websitesPath, website));
             let resultFilePath = path.join(destPath, `${resultFileName}.json`);
             if (fileUtil.checkFileExists(resultFilePath)) {
@@ -98,8 +104,13 @@ program
                 path.join(websitesPath, website)
             );
 
-            let globalWrites = resultParser.parseResult(results);
-            fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
+            try {
+                let globalWrites = resultParser.parseResult(results);  
+                fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
+            } catch (error) {
+                console.log(`no global writes for ${website} -> issues in analysis`)
+            }
+
         }
     });
 

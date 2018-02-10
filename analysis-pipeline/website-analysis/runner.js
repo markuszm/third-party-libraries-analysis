@@ -40,7 +40,7 @@ async function runAnalysisInBrowser(websiteFolder) {
         await page.waitFor(30000);
 
         if (writes.includes('"$": "Function"')) {
-            console.log('trying to detect JQuery version');
+            console.log('trying to detect jQuery version');
             try {
                 let promise = page.evaluate('$.fn.jquery')
                 await page.waitFor(30000);

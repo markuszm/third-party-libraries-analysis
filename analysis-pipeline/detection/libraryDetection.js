@@ -95,8 +95,7 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
         }
         let averageSimilarity = similarityPercentage / treeCount;
 
-        // todo: add isEqual method for arrays
-        let nodeIds = Array.from(libraryForestMap.keys()).toString();
+        let nodeIds = Array.from(libraryForestMap.keys()).sort().toString();
 
         // check if there is already a library that has same node ids but different confidence -> replace if higher confidence
         let indexOtherLibrary = detectedLibraries.findIndex(library => library.nodeIds === nodeIds);
