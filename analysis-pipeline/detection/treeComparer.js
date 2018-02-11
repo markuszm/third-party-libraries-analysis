@@ -1,5 +1,6 @@
 const levenshtein = require('fast-levenshtein');
 const exec = require('child_process').execSync;
+const fs = require('fs');
 
 function compareTreeWithStringMatching(root1, root2) {
     let treeIds1 = '';
@@ -37,7 +38,13 @@ function compareTreeWithTreeDistance(root1, root2) {
 
     const pathToLib = './libs/apted.jar';
 
-    const stdout = exec(`java -jar ${pathToLib} -t '${tree1AsString}' '${tree2AsString}'`).toString();
+    const filePathTree1 = './tmp/1.tree';
+    const filePathTree2 = './tmp/2.tree';
+
+    fs.writeFileSync(filePathTree1, tree1AsString);
+    fs.writeFileSync(filePathTree2, tree2AsString); 
+
+    const stdout = exec(`java -jar ${pathToLib} -f ${filePathTree1} ${filePathTree2}`).toString();
 
     let distanceF = parseFloat(stdout);
     if (distanceF !== Number.NaN) {

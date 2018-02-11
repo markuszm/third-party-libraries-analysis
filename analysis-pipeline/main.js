@@ -13,8 +13,12 @@ const websiteInstrument = require('./website-analysis/instrument');
 const websiteScraper = require('./website-analysis/scraper');
 
 const apiUrl = 'https://api.cdnjs.com/libraries';
+const websiteBlacklist = ['facebook.com', 'outlook.live.com', 'reddit.com', 'sohu.com'];
 
-program.command('fullModel <path>').action(async folderPath => {
+let executed = false;
+
+program.command('analyzeAllLibraries <path>').action(async folderPath => {
+    executed = true;
     await fileUtil.ensureExistsAsync(folderPath);
 
     const librariesPath = path.join(folderPath, 'libraries.json');
@@ -34,139 +38,134 @@ program.command('fullModel <path>').action(async folderPath => {
     }
 });
 
+program.command('analyzeLibrary <htmlPath> <destPath>').action(async (htmlPath, destPath) => {
+    executed = true;
+
+    await fileUtil.ensureExistsAsync(destPath);
+    await runAnalysisHTML(htmlPath, destPath);
+});
+
 program.command('aggregate <resultsPath> <destPath>').action(async (resultsPath, destPath) => {
+    executed = true;
     await resultParser.aggregateResults(resultsPath, destPath);
 });
 
 program.command('scrape <destPath>').action(async destPath => {
+    executed = true;
     await fileUtil.ensureExistsAsync(destPath);
     websiteScraper.downloadAllWebsites(destPath);
 });
 
 program
-    .command('instrumentWebsite <websitePath> <analysisPath> <destPath>')
-    .action(async (websitePath, analysisPath, destPath) => {
-        await fileUtil.ensureExistsAsync(destPath);
-        websiteInstrument.instrumentWebsite(websitePath, analysisPath, destPath);
-    });
+    .command('instrumentWebsite <websitesPath> <analysisPath> <destPath>')
+    .option('-dir --directoy', 'Instruments all websites in given folder path')
+    .action(async (websitePath, analysisPath, destPath, options) => {
+        executed = true;
 
-program
-    .command('instrumentWebsites <websitesPath> <analysisPath> <destPath>')
-    .action(async (websitesPath, analysisPath, destPath) => {
-        await fileUtil.ensureExistsAsync(destPath);
-        let websites = fs.readdirSync(websitesPath);
-        for (let website of websites) {
-            websiteInstrument.instrumentWebsite(
-                path.join(websitesPath, website),
-                analysisPath,
-                destPath
-            );
+        if (options.directory) {
+            await fileUtil.ensureExistsAsync(destPath);
+            let websites = fs.readdirSync(websitePath);
+            for (let website of websites) {
+                websiteInstrument.instrumentWebsite(
+                    path.join(websitePath, website),
+                    analysisPath,
+                    destPath
+                );
+            }
+        } else {
+            await fileUtil.ensureExistsAsync(destPath);
+            websiteInstrument.instrumentWebsite(websitePath, analysisPath, destPath);
         }
     });
 
-program.command('analyzeHTML <htmlPath> <destPath>').action(async (htmlPath, destPath) => {
-    await fileUtil.ensureExistsAsync(destPath);
-    await runAnalysisHTML(htmlPath, destPath);
-});
 
-program.command('analyzeWebsite <websitePath> <destPath>').action(async (websitePath, destPath) => {
-    await fileUtil.ensureExistsAsync(destPath);
-    let resultFileName = path.basename(websitePath);
-
-    let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(websitePath);
-
-    let globalWrites = resultParser.parseResult(results);
-    fs.writeFileSync(path.join(destPath, `${resultFileName}.json`), JSON.stringify(globalWrites));
-});
 
 program
-    .command('analyzeWebsites <websitesPath> <destPath>')
-    .action(async (websitesPath, destPath) => {
+    .command('analyzeWebsite <websitesPath> <destPath>')
+    .option('-dir --directory', 'Analyzes all websites in given folder path')
+    .action(async (websitesPath, destPath, options) => {
+        executed = true;
+
         await fileUtil.ensureExistsAsync(destPath);
 
-        let websites = fs.readdirSync(websitesPath);
+        if (options.directory) {
+            let websites = fs.readdirSync(websitesPath);
 
-        const blacklist = ['facebook.com', 'outlook.live.com', 'reddit.com', 'sohu.com']
+            for (let website of websites) {
+                let websitePath = path.join(websitesPath, website);
+                let resultFileName = path.basename(path.join(websitePath, website));
+                let resultFilePath = path.join(destPath, `${resultFileName}.json`);
 
-        for (let website of websites) {
-            if(blacklist.includes(website)) {
-                console.log(`Website ${website} is blacklisted -> skipping`);
-                continue;
+                runWebsiteAnalysis(websitePath, resultFilePath);
             }
-            let resultFileName = path.basename(path.join(websitesPath, website));
+        } else {
+            let resultFileName = path.basename(websitesPath);
             let resultFilePath = path.join(destPath, `${resultFileName}.json`);
-            if (fileUtil.checkFileExists(resultFilePath)) {
-                console.log(`Already analyzed website: ${website}`);
-                continue;
-            }
-            console.log(`Analyzing website: ${website}`);
-            let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(
-                path.join(websitesPath, website)
-            );
 
-            try {
-                let globalWrites = resultParser.parseResult(results);  
-                fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
-            } catch (error) {
-                console.log(`no global writes for ${website} -> issues in analysis`)
-            }
+            runWebsiteAnalysis(websitesPath, resultFilePath);
+        }
 
+    });
+
+// just for testing model generation algorithm
+program
+    .command('model <resultPath>')
+    .option('-w --website', 'Generate model for website')
+    .option('-l --library', 'Generate model for library')
+    .action(async (resultPath, options) => {
+        executed = true;
+
+        if (options.website && options.library || (!options.website && !options.library)) {
+            console.error('Specify at least one and only one option!');
+        }
+
+        if (options.library) {
+            let librariesModel = libraryDetection.generateLibrariesModel(resultPath);
+
+            console.log(librariesModel.variableUsageMap.get('$'));
+            console.log(librariesModel.libraryVariablesMap.get('jquery'));
+        }
+
+        if (options.website) {
+            let model = libraryDetection.generateWebsiteModel(resultPath);
+
+            model.forEach((value, key) => {
+                console.log(key);
+                console.log(value.model);
+            });
         }
     });
 
-// just for testing model generation algorithm from website global write results
-program.command('modelWebsite <resultPath>').action(async resultPath => {
-    let model = libraryDetection.generateWebsiteModel(resultPath);
-
-    model.forEach((value, key) => {
-        console.log(key);
-        console.log(value.model);
-    });
-});
-
-// just for testing model generation algorithm from libraries global write results
-program.command('model <resultPath>').action(async resultPath => {
-    let librariesModel = libraryDetection.generateLibrariesModel(resultPath);
-
-    console.log(librariesModel.variableUsageMap.get('$'));
-    console.log(librariesModel.libraryVariablesMap.get('jquery'));
-});
-
 program
-    .command('detect <websiteResult> <resultMap> <destPath>')
-    .action(async (websiteResultPath, librariesResultPath, destPath) => {
-        await fileUtil.ensureExistsAsync(destPath);
+    .command('detect <websiteResultPath> <resultMap> <destPath>')
+    .option('-n --nested', 'Searches for nested libraries (increases false positives)')
+    .option('-d --debug', 'Does not filter libaries with low confidence for debug purposes')
+    .option('-dir --directory', 'Detects libraries for all websites in given folder path')
+    .action(async (websiteResultsPath, librariesResultPath, destPath, options) => {
+        executed = true;
 
-        let results = libraryDetection.detectLibraries(websiteResultPath, librariesResultPath);
+        await fileUtil.ensureExistsAsync(destPath);
         
-        let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultPath)}`);
-        fs.writeFileSync(resultFilePath, JSON.stringify(results));
-    });
+        if (options.directory) {
+            let websiteResultPaths = fs.readdirSync(websiteResultsPath);
 
-program
-    .command('detectAll <websiteResultsPath> <resultMap> <destPath>')
-    .action(async (websiteResultsFolder, librariesResultPath, destPath) => {
-        await fileUtil.ensureExistsAsync(destPath);
-
-        let websiteResultPaths = fs.readdirSync(websiteResultsFolder);
-
-        for (const fileName of websiteResultPaths) {
-            let results = libraryDetection.detectLibraries(path.join(websiteResultsFolder, fileName), librariesResultPath);
-            let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
+            for (const fileName of websiteResultPaths) {
+                let results = libraryDetection.detectLibraries(path.join(websiteResultsPath, fileName), librariesResultPath, { nested: options.nested, debug: options.debug });
+                let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
+                fs.writeFileSync(resultFilePath, JSON.stringify(results));
+            }
+        } else {
+            let results = libraryDetection.detectLibraries(websiteResultsPath, librariesResultPath, { nested: options.nested, debug: options.debug });
+            let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultsPath)}`);
             fs.writeFileSync(resultFilePath, JSON.stringify(results));
         }
+
     });
 
 program.parse(process.argv);
 
-function strMapToObj(map) {
-    let obj = Object.create(null);
-    for (let [k,v] of map) {
-        // We don’t escape the key '__proto__'
-        // which can cause problems on older engines
-        obj[k] = v;
-    }
-    return obj;
+if (!executed) {
+    program.help();
 }
 
 async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
@@ -189,5 +188,27 @@ async function runAnalysisHTML(htmlPath, resultsPath) {
         console.log(`Analyzing ${html}`);
         let results = await analysisRunner.runAnalysisInBrowser(htmlPath);
         fs.writeFileSync(resultFilePath, JSON.stringify(results));
+    }
+}
+
+async function runWebsiteAnalysis(websitePath, resultFilePath) {
+    const website = path.basename(websitePath);
+
+    if (websiteBlacklist.includes(website)) {
+        console.log(`Website ${website} is blacklisted -> skipping`);
+        return;
+    }
+    if (fileUtil.checkFileExists(resultFilePath)) {
+        console.log(`Already analyzed website: ${website}`);
+        return;
+    }
+    console.log(`Analyzing website: ${website}`);
+    let results = await websiteAnalysisRunner.runWebsiteAnalysisInBrowser(websitePath);
+
+    try {
+        let globalWrites = resultParser.parseResult(results);
+        fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
+    } catch (error) {
+        console.log(`no global writes for ${website} -> issues in analysis`)
     }
 }

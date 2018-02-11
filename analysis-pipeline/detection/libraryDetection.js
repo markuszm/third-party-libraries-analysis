@@ -36,7 +36,7 @@ function generateLibrariesModel(resultPath) {
     return { variableUsageMap, libraryVariablesMap };
 }
 
-function detectLibraries(websiteResultPath, librariesResultPath) {
+function detectLibraries(websiteResultPath, librariesResultPath, options) {
     // map of variable hierarchies (variable -> (Libraryname -> Function/Object Tree Hierarchy ))
     let librariesModel = generateLibrariesModel(librariesResultPath);
 
@@ -60,16 +60,19 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
     websiteModel.forEach(tree => {
         let rootVariable = getIdOfNode(tree);
         if (!librariesModel.variableUsageMap.has(rootVariable)) {
-            tree.walk({ strategy: 'post' }, node => {
-                let variable = getIdOfNode(node);
-
-                // when variable is not root of any library tree then continue
-                if (!librariesModel.variableUsageMap.has(variable)) return;
-
-                let libraryList = librariesModel.variableUsageMap.get(variable);
-                libraryList.forEach(library => seenLibraries.add(library));
-                matchedNodesMap.set(variable, node);
-            });
+            // if looking for nested libraries it DFS tree to compare variables down there
+            if (options.nested) {
+                tree.walk({ strategy: 'post' }, node => {
+                    let variable = getIdOfNode(node);
+    
+                    // when variable is not root of any library tree then continue
+                    if (!librariesModel.variableUsageMap.has(variable)) return;
+    
+                    let libraryList = librariesModel.variableUsageMap.get(variable);
+                    libraryList.forEach(library => seenLibraries.add(library));
+                    matchedNodesMap.set(variable, node);
+                });
+            }
         } else {
             let libraryList = librariesModel.variableUsageMap.get(rootVariable);
             libraryList.forEach(library => seenLibraries.add(library));
@@ -116,7 +119,9 @@ function detectLibraries(websiteResultPath, librariesResultPath) {
         }
     }
 
-    detectedLibraries = filterLowConfidence(detectedLibraries);
+    if(!options.debug) {
+        detectedLibraries = filterLowConfidence(detectedLibraries);
+    }
 
     sortDetectedLibraries(detectedLibraries);
 
