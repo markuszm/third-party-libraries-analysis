@@ -6,6 +6,9 @@ function scrapeWebsite(url, dest) {
     var options = {
         urls: [url],
         directory: dest,
+        onResourceError: (resource, err) => {
+            console.log(`Resource ${resource} was not saved because of ${err}`);
+        },
         request: {
             headers: {
                 'User-Agent':
@@ -45,7 +48,37 @@ const urls = [
     'https://weibo.com',
     'https://wikipedia.org',
     'https://yahoo.com',
-    'https://youtube.com'
+    'https://youtube.com',
+    'https://wired.com/',
+    'https://joomla.org/',
+    'https://ted.com/',
+    'https://one.com/en/',
+    'https://imgur.com/',
+    'http://overseas.weibo.com/',
+    'https://line.me/',
+    'https://marykay.com/',
+    'http://kobold.vorwerk.de/',
+    'https://bing.com/',
+    'https://businessforhome.org/',
+    'http://pbs.org/',
+    'https://ibm.com/',
+    'https://shopify.de/',
+    'https://epa.gov/',
+    'https://a8.net/',
+    'https://wufoo.com/',
+    'https://foursquare.com/',
+    'http://doi.org/',
+    'https://vice.com/',
+    'https://about.me/',
+    'https://houzz.de/',
+    'https://upenn.edu/',
+    'https://slideshare.net/',
+    'https://wsj.com/',
+    'http://ameblo.jp/',
+    'https://sourceforge.net/',
+    'https://4life.com/',
+    'https://www.aol.de/',
+    'https://xing.com/',
 ];
 
 function downloadAllWebsites(dest) {

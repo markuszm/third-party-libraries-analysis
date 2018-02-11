@@ -58,7 +58,7 @@ program.command('scrape <destPath>').action(async destPath => {
 
 program
     .command('instrumentWebsite <websitesPath> <analysisPath> <destPath>')
-    .option('-dir --directoy', 'Instruments all websites in given folder path')
+    .option('-d --directory', 'Instruments all websites in given folder path')
     .action(async (websitePath, analysisPath, destPath, options) => {
         executed = true;
 
@@ -82,7 +82,7 @@ program
 
 program
     .command('analyzeWebsite <websitesPath> <destPath>')
-    .option('-dir --directory', 'Analyzes all websites in given folder path')
+    .option('-d --directory', 'Analyzes all websites in given folder path')
     .action(async (websitesPath, destPath, options) => {
         executed = true;
 
@@ -96,13 +96,13 @@ program
                 let resultFileName = path.basename(path.join(websitePath, website));
                 let resultFilePath = path.join(destPath, `${resultFileName}.json`);
 
-                runWebsiteAnalysis(websitePath, resultFilePath);
+                await runWebsiteAnalysis(websitePath, resultFilePath);
             }
         } else {
             let resultFileName = path.basename(websitesPath);
             let resultFilePath = path.join(destPath, `${resultFileName}.json`);
 
-            runWebsiteAnalysis(websitesPath, resultFilePath);
+            await runWebsiteAnalysis(websitesPath, resultFilePath);
         }
 
     });
@@ -140,7 +140,7 @@ program
     .command('detect <websiteResultPath> <resultMap> <destPath>')
     .option('-n --nested', 'Searches for nested libraries (increases false positives)')
     .option('-d --debug', 'Does not filter libaries with low confidence for debug purposes')
-    .option('-dir --directory', 'Detects libraries for all websites in given folder path')
+    .option('-f --directory', 'Detects libraries for all websites in given folder path')
     .action(async (websiteResultsPath, librariesResultPath, destPath, options) => {
         executed = true;
 
