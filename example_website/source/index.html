@@ -2,7 +2,7 @@
     <head>
         <script src="./jquery-3.3.1.min.js"></script>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+        <script src="./underscore-min.js"></script>
     </head>
     <body>
         <h1>Hello! This is a sample website testing jQuery</h1>
@@ -14,7 +14,11 @@
 
         <script>
             alert('Suprise, it also uses underscore');
-            _.each($('*'), (node) => alert(node));
+            let nodeString = "";
+            _.each($('*'), (node) => nodeString += `${node.tagName} `);
+            alert(nodeString);
         </script>
+
+        <script src="../analysis/simpleGlobalWritesAnalysis.js"></script>
     </body>
-</html>
+</html> 
