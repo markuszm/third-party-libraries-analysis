@@ -1,6 +1,8 @@
 const puppeteer = require('puppeteer');
 const express = require('express');
 
+const TIMEOUT = 15 * 60 * 1000;
+
 async function runAnalysisInBrowser(websiteFolder) {
     const app = express();
 
@@ -19,17 +21,17 @@ async function runAnalysisInBrowser(websiteFolder) {
         writes += msg.text;
     });
 
-    // page.on('error', err => {
-    //     errors += err;
-    // });
+    page.on('error', err => {
+        errors += err;
+    });
 
-    // page.on('pageerror', pageerr => {
-    //     errors += pageerr;
-    // })
+    page.on('pageerror', pageerr => {
+        errors += pageerr;
+    })
 
     try {
         console.log('navigating to analysis');
-        await page.goto('http://localhost:3001', { timeout: 900000 });
+        await page.goto('http://localhost:3001', { timeout: TIMEOUT });
         console.log('analysis finished');
     } catch (err) {
         console.log('analysis timed out');

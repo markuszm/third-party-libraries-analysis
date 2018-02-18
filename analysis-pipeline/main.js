@@ -210,5 +210,6 @@ async function runWebsiteAnalysis(websitePath, resultFilePath) {
         fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
     } catch (error) {
         console.log(`no global writes for ${website} -> issues in analysis`)
+        fs.writeFileSync(resultFilePath + '.err', JSON.stringify(results.errors));
     }
 }
