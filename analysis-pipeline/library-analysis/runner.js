@@ -2,6 +2,8 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const express = require('express');
 
+const TIMEOUT = 5 * 60 * 1000;
+
 async function runAnalysisInBrowser(pathToHtml) {
     let html = fs.readFileSync(pathToHtml, { encoding: 'utf8' });
 
@@ -34,13 +36,19 @@ async function runAnalysisInBrowser(pathToHtml) {
     });
 
     try {
-        await page.goto(`http://localhost:${randomPort}`, { timeout: 300000 });
+        console.log('navigating to analysis');
+        await page.goto(`http://localhost:${randomPort}`, { timeout: TIMEOUT });
+        console.log('analysis finished');
     } catch (err) {
+        console.log('analysis timed out');
         errors += 'Error: Timeout';
     } finally {
+        console.log('triggering endExcecution of analysis');
+        await page.evaluate('J$.analysis.endExecution()');
+
+        console.log('closing all resources');
         await browser.close();
         await server.close();
-
         return { writes, errors };
     }
 }
