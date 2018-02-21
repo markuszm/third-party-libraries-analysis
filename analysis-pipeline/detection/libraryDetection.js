@@ -3,7 +3,7 @@ const treeComparer = require('./treeComparer');
 
 const fs = require('fs');
 
-const MIN_CONFIDENCE = 75.0;
+const MIN_CONFIDENCE = 70.0;
 
 function getIdOfNode(node) {
     return node.model.id;
