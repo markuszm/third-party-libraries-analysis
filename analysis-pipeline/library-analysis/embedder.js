@@ -6,7 +6,7 @@ const fileUtil = require('../fileUtil');
 
 const Mustache = require('mustache');
 
-async function createHTMLs(pathToLibraries, destination) {
+async function createHTMLForAllLibraries(pathToLibraries, destination) {
     let librariesJson = fs.readFileSync(pathToLibraries, { encoding: 'utf8' });
 
     let libraries = JSON.parse(librariesJson);
@@ -23,6 +23,22 @@ async function createHTMLs(pathToLibraries, destination) {
             instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv);
         }
     }
+}
+
+async function createHTML(pathToLibrary, destination) {
+    let analysisCode = loadAnalysisCode();
+    let jalangiEnv = loadJalangiEnv();
+
+    let scriptContent = fs.readFileSync(pathToLibrary, { encoding: 'utf8' });
+    let libraryName = path.basename(pathToLibrary);
+
+    let library = {name: libraryName, js: scriptContent};
+
+    const htmlPath = path.join(destination, `${libraryName}.html`);
+
+    instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv);
+
+    return htmlPath;
 }
 
 function instrumentAndEmbed(library, htmlPath, analysisCode, jalangiEnv) {
@@ -79,4 +95,5 @@ function loadJalangiEnv() {
     return `${esotope} \n ${acorn} \n ${constants} \n ${config} \n ${astUtil} \n ${esnstrument} \n ${iidToLocation} \n ${analysis} \n`;
 }
 
-exports.createHtmlJson = createHTMLs;
+exports.createHTMLForAllLibraries = createHTMLForAllLibraries;
+exports.createHTMLForLibrary = createHTML;

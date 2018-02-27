@@ -17,32 +17,57 @@ const websiteBlacklist = ['facebook.com', 'outlook.live.com', 'reddit.com', 'soh
 
 let executed = false;
 
-program.command('analyzeAllLibraries <path>').action(async folderPath => {
+program.command('fullAnalysis <path>').action(async destPath => {
     executed = true;
-    await fileUtil.ensureExistsAsync(folderPath);
+    await fileUtil.ensureExistsAsync(destPath);
 
-    const librariesPath = path.join(folderPath, 'libraries.json');
-    const htmlsPath = path.join(folderPath, 'htmls');
-    const resultsPath = path.join(folderPath, 'results');
+    const librariesPath = path.join(destPath, 'libraries.json');
+    const htmlsPath = path.join(destPath, 'htmls');
+    const resultsPath = path.join(destPath, 'results');
 
     await fileUtil.ensureExistsAsync(htmlsPath);
     await fileUtil.ensureExistsAsync(resultsPath);
 
     if (fileUtil.checkFileExists(librariesPath)) {
-        await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
-        await resultParser.aggregateResults(resultsPath, folderPath);
+        await embedAndRunAnalysisForAllLibraries(librariesPath, htmlsPath, resultsPath);
+        await resultParser.aggregateResults(resultsPath, destPath);
     } else {
         await downloader.downloadLibraries(apiUrl, librariesPath);
-        await embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath);
-        await resultParser.aggregateResults(resultsPath, folderPath);
+        await embedAndRunAnalysisForAllLibraries(librariesPath, htmlsPath, resultsPath);
+        await resultParser.aggregateResults(resultsPath, destPath);
     }
 });
 
-program.command('analyzeLibrary <htmlPath> <destPath>').action(async (htmlPath, destPath) => {
+program.command('analyzeInstrumentedLibrary <htmlPath> <destPath>').action(async (htmlPath, destPath) => {
     executed = true;
 
     await fileUtil.ensureExistsAsync(destPath);
     await runAnalysisHTML(htmlPath, destPath);
+});
+
+program.command('analyzeLibrary <libraryPath> <destPath>')
+    .option('-d --directory', 'Analyzes all library script files in given folder path')
+    .action(async (libraryPath, destPath, options) => {
+    executed = true;
+    await fileUtil.ensureExistsAsync(destPath);
+
+    const htmlsPath = path.join(destPath, 'htmls');
+    const resultsPath = path.join(destPath, 'results');
+
+    await fileUtil.ensureExistsAsync(htmlsPath);
+    await fileUtil.ensureExistsAsync(resultsPath);
+
+    if(options.directory) {
+        let libraries = fs.readdirSync(libraryPath);
+
+        for (let library of libraries) {
+            let singleLibraryPath = path.join(libraryPath, library);
+            await embedAndRunAnalysisForLibrary(singleLibraryPath, htmlsPath, resultsPath);
+        }
+    } else {
+        await embedAndRunAnalysisForLibrary(libraryPath, htmlsPath, resultsPath);
+    }
+
 });
 
 program.command('aggregate <resultsPath> <destPath>').action(async (resultsPath, destPath) => {
@@ -139,8 +164,8 @@ program
 program
     .command('detect <websiteResultPath> <resultMap> <destPath>')
     .option('-n --nested', 'Searches for nested libraries (increases false positives)')
-    .option('-d --debug', 'Does not filter libaries with low confidence for debug purposes')
-    .option('-f --directory', 'Detects libraries for all websites in given folder path')
+    .option('-v --verbose', 'Does not filter libaries with low confidence for debug purposes')
+    .option('-d --directory', 'Detects libraries for all websites in given folder path')
     .action(async (websiteResultsPath, librariesResultPath, destPath, options) => {
         executed = true;
 
@@ -150,12 +175,12 @@ program
             let websiteResultPaths = fs.readdirSync(websiteResultsPath);
 
             for (const fileName of websiteResultPaths) {
-                let results = libraryDetection.detectLibraries(path.join(websiteResultsPath, fileName), librariesResultPath, { nested: options.nested, debug: options.debug });
+                let results = libraryDetection.detectLibraries(path.join(websiteResultsPath, fileName), librariesResultPath, { nested: options.nested, debug: options.verbose });
                 let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
                 fs.writeFileSync(resultFilePath, JSON.stringify(results));
             }
         } else {
-            let results = libraryDetection.detectLibraries(websiteResultsPath, librariesResultPath, { nested: options.nested, debug: options.debug });
+            let results = libraryDetection.detectLibraries(websiteResultsPath, librariesResultPath, { nested: options.nested, debug: options.verbose });
             let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultsPath)}`);
             fs.writeFileSync(resultFilePath, JSON.stringify(results));
         }
@@ -168,8 +193,8 @@ if (!executed) {
     program.help();
 }
 
-async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
-    await embedder.createHtmlJson(librariesPath, htmlsPath);
+async function embedAndRunAnalysisForAllLibraries(librariesPath, htmlsPath, resultsPath) {
+    await embedder.createHTMLForAllLibraries(librariesPath, htmlsPath);
 
     await fs.readdir(htmlsPath, async (err, items) => {
         for (let item of items) {
@@ -177,6 +202,11 @@ async function embedAndRunAnalysis(librariesPath, htmlsPath, resultsPath) {
             await runAnalysisHTML(htmlPath, resultsPath);
         }
     });
+}
+
+async function embedAndRunAnalysisForLibrary(libraryPath, htmlsPath, resultsPath) {
+    let htmlPath = await embedder.createHTMLForLibrary(libraryPath, htmlsPath);
+    await runAnalysisHTML(htmlPath, resultsPath);
 }
 
 async function runAnalysisHTML(htmlPath, resultsPath) {
