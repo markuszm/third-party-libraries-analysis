@@ -10,7 +10,7 @@ async function runAnalysisInBrowser(websiteFolder) {
 
     let server = app.listen(3001, () => console.log('Analysis listening on port 3001!'));
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
 
     let writes = '';

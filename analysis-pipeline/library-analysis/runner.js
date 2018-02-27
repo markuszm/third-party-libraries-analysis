@@ -16,7 +16,8 @@ async function runAnalysisInBrowser(pathToHtml) {
         console.log(`Analysis listening on port ${randomPort}!`)
     );
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+
     const page = await browser.newPage();
 
     let writes = '';
