@@ -38,47 +38,56 @@ program.command('fullAnalysis <path>').action(async destPath => {
     }
 });
 
-program.command('analyzeInstrumentedLibrary <htmlPath> <destPath>').action(async (htmlPath, destPath) => {
-    executed = true;
+program
+    .command('analyzeInstrumentedLibrary <htmlPath> <destPath>')
+    .action(async (htmlPath, destPath) => {
+        executed = true;
 
-    await fileUtil.ensureExistsAsync(destPath);
-    await runAnalysisHTML(htmlPath, destPath);
-});
+        await fileUtil.ensureExistsAsync(destPath);
+        await runAnalysisHTML(htmlPath, destPath);
+    });
 
-program.command('analyzeLibrary <libraryPath> <destPath>')
+program
+    .command('analyzeLibrary <libraryPath> <destPath>')
     .option('-d --directory', 'Analyzes all library script files in given folder path')
     .action(async (libraryPath, destPath, options) => {
-    executed = true;
-    await fileUtil.ensureExistsAsync(destPath);
+        executed = true;
+        await fileUtil.ensureExistsAsync(destPath);
 
-    const htmlsPath = path.join(destPath, 'htmls');
-    const resultsPath = path.join(destPath, 'results');
+        const htmlsPath = path.join(destPath, 'htmls');
+        const resultsPath = path.join(destPath, 'results');
 
-    await fileUtil.ensureExistsAsync(htmlsPath);
-    await fileUtil.ensureExistsAsync(resultsPath);
+        await fileUtil.ensureExistsAsync(htmlsPath);
+        await fileUtil.ensureExistsAsync(resultsPath);
 
-    if(options.directory) {
-        let libraries = fs.readdirSync(libraryPath);
+        if (options.directory) {
+            let libraries = fs.readdirSync(libraryPath);
 
-        for (let library of libraries) {
-            let singleLibraryPath = path.join(libraryPath, library);
-            await embedAndRunAnalysisForLibrary(singleLibraryPath, htmlsPath, resultsPath);
+            for (let library of libraries) {
+                let singleLibraryPath = path.join(libraryPath, library);
+                await embedAndRunAnalysisForLibrary(singleLibraryPath, htmlsPath, resultsPath);
+            }
+            await resultParser.aggregateResults(resultsPath, destPath);
+        } else {
+            await embedAndRunAnalysisForLibrary(libraryPath, htmlsPath, resultsPath);
+            await resultParser.aggregateResults(resultsPath, destPath);
         }
-    } else {
-        await embedAndRunAnalysisForLibrary(libraryPath, htmlsPath, resultsPath);
-    }
+    });
 
-});
-
-program.command('aggregate <resultsPath> <destPath>').action(async (resultsPath, destPath) => {
+program.command('aggregateResults <resultsPath> <destPath>').action(async (resultsPath, destPath) => {
     executed = true;
     await resultParser.aggregateResults(resultsPath, destPath);
 });
 
-program.command('scrape <destPath>').action(async destPath => {
+program.command('downloadWebsites <urlsPath> <destPath>').action(async (urlsPath, destPath) => {
     executed = true;
+
+    let contents = fs.readFileSync(urlsPath, { encoding: 'utf8' });
+    let urls = contents.split('\n');
+
     await fileUtil.ensureExistsAsync(destPath);
-    websiteScraper.downloadAllWebsites(destPath);
+
+    websiteScraper.downloadAllWebsites(urls, destPath);
 });
 
 program
@@ -102,8 +111,6 @@ program
             websiteInstrument.instrumentWebsite(websitePath, analysisPath, destPath);
         }
     });
-
-
 
 program
     .command('analyzeWebsite <websitesPath> <destPath>')
@@ -129,7 +136,6 @@ program
 
             await runWebsiteAnalysis(websitesPath, resultFilePath);
         }
-
     });
 
 // just for testing model generation algorithm
@@ -140,7 +146,7 @@ program
     .action(async (resultPath, options) => {
         executed = true;
 
-        if (options.website && options.library || (!options.website && !options.library)) {
+        if ((options.website && options.library) || (!options.website && !options.library)) {
             console.error('Specify at least one and only one option!');
         }
 
@@ -170,21 +176,31 @@ program
         executed = true;
 
         await fileUtil.ensureExistsAsync(destPath);
-        
+
         if (options.directory) {
             let websiteResultPaths = fs.readdirSync(websiteResultsPath);
 
             for (const fileName of websiteResultPaths) {
-                let results = libraryDetection.detectLibraries(path.join(websiteResultsPath, fileName), librariesResultPath, { nested: options.nested, debug: options.verbose });
+                let results = libraryDetection.detectLibraries(
+                    path.join(websiteResultsPath, fileName),
+                    librariesResultPath,
+                    { nested: options.nested, debug: options.verbose }
+                );
                 let resultFilePath = path.join(destPath, `detectedLibraries_${fileName}`);
                 fs.writeFileSync(resultFilePath, JSON.stringify(results));
             }
         } else {
-            let results = libraryDetection.detectLibraries(websiteResultsPath, librariesResultPath, { nested: options.nested, debug: options.verbose });
-            let resultFilePath = path.join(destPath, `detectedLibraries_${path.basename(websiteResultsPath)}`);
+            let results = libraryDetection.detectLibraries(
+                websiteResultsPath,
+                librariesResultPath,
+                { nested: options.nested, debug: options.verbose }
+            );
+            let resultFilePath = path.join(
+                destPath,
+                `detectedLibraries_${path.basename(websiteResultsPath)}`
+            );
             fs.writeFileSync(resultFilePath, JSON.stringify(results));
         }
-
     });
 
 program.parse(process.argv);
@@ -239,7 +255,7 @@ async function runWebsiteAnalysis(websitePath, resultFilePath) {
         let globalWrites = resultParser.parseResult(results);
         fs.writeFileSync(resultFilePath, JSON.stringify(globalWrites));
     } catch (error) {
-        console.log(`no global writes for ${website} -> issues in analysis`)
+        console.log(`no global writes for ${website} -> issues in analysis`);
         fs.writeFileSync(resultFilePath + '.err', JSON.stringify(results.errors));
     }
 }
