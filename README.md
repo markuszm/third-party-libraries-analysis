@@ -5,11 +5,11 @@
 Detection of third party libraries on websites.
 Downloads websites using a scraper and analyses them with Jalangi 2 and a global writes analysis.
 
-Global Writes Analysis from [ConflictJS]("https://github.com/sola-da/ConflictJS")
+Global Writes Analysis from [ConflictJS](https://github.com/sola-da/ConflictJS)
 
 Before detecting libraries a library model needs to be created. Either from analyzing all latest versions of libraries from cdnjs or from downloaded JavaScript files.
 
-Uses [APTED]("https://github.com/DatabaseGroup/apted") as tree comparision library
+Uses [APTED](https://github.com/DatabaseGroup/apted) as tree comparision library
 
 Dockerfile is also included that contains installs all requirements to quickly run the cli
 
