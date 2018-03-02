@@ -12,11 +12,11 @@ Before detecting libraries a library model needs to be created. Either from anal
 
 Uses [APTED](https://github.com/DatabaseGroup/apted) as tree comparision library
 
-Dockerfile is also included that contains installs all requirements to quickly run the cli
+Dockerfile is also included that has all requirements preinstalled to quickly run the cli. Running in docker is not recommended for performance intensive tasks like instrumentation and analysis of libraries/websites. It was not used for the evaluation and was just included if the requirements needed to run all commands of the CLI can't be meet.  
 
 ### Requirements:
 
-Requires nodejs (tested with version 9.2.1) and Java 8
+Requires Node.js (tested with version 9.2.1) and Java 8
 
 Install npm packages with:
 
@@ -97,8 +97,10 @@ e.g.
 
     `-d`: specify when `websiteResultPath` is a folder path to analysis results instead of a file path to analysis result 
 
-#### Bash Scripts 
-There are 3 bash scripts that run all necessary commands of the cli
+## Reproduce Evaluation
+There are 3 bash scripts that run all necessary commands of the CLI to reproduce the evaluation results.
+The evaluation was done using all libraries from cdnJS. To reproduce that run `createLibraryModelCDNJS.sh`. This can take a long time so you might only want to run it with a selection of libraries using `createLibraryModelLibrariesFolder.sh`.
+The default for running the library detection contains all websites that were used for the evaluation, so to reproduce you can run `runLibraryDetectionOnWebsites.sh` or add additional websites to the website.txt file.
 
 - `createLibraryModelCDNJS.sh <folder path to store model>`
   
