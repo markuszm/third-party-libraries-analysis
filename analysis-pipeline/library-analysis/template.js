@@ -7,7 +7,6 @@ const template =
     <!-- Needed for finding type --> \
     <script type="text/javascript">{{{ jalangiEnv }}} \n {{{globalWritesAnalysis }}} \n {{{ instrumentedCode }}} \n \
     </script> \
-    <script>J$.analysis.endExecution()     </script> \
 </head> \
 <body> \
 <h2>Analyzing global writes of <!--NAME--></h2> \

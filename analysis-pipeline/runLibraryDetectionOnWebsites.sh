@@ -11,11 +11,10 @@ else
     MODELPATH=$1
     TEMPPATH=$2
     node main.js downloadWebsites ./websites.txt $TEMPPATH/websites
-    node main.js instrumentWebsites -d $TEMPPATH/websites ./globalWritesAnalysis.js $TEMPPATH/instrumentedWebsites
-    node main.js analyzeWebsites -d $TEMPPATH/instrumentedWebsites $TEMPPATH/websiteResults
+    node --max-old-space-size=16384 main.js instrumentWebsite -d $TEMPPATH/websites ./globalWritesAnalysis.js $TEMPPATH/instrumentedWebsites
+    node main.js analyzeWebsite -d $TEMPPATH/instrumentedWebsites $TEMPPATH/websiteResults
     node main.js detect -d $TEMPPATH/websiteResults $MODELPATH $TEMPPATH/detectionResults
 
     echo "See results in $TEMPPATH/detectionResults"
     echo "each JSON there contains libraries that were detected"
 fi
-
